@@ -1,0 +1,1734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#061327">
+<meta name="description" content="Rocket Rivals: top-down 2D car soccer. Play against four bot difficulties or challenge a friend on one keyboard.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%97%3C/text%3E%3C/svg%3E">
+<title>Rocket Rivals | Top-Down Car Soccer</title>
+<style>
+:root{color-scheme:dark;--blue:#28c7ff;--orange:#ffae56;--deep:#071428;--ink:#ecf8ff;--muted:#a5c0d4}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#061022}
+body{color:var(--ink);font:500 15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% -15%,#165080 0%,#0b213a 35%,#061021 75%);padding:0 14px 22px}
+button,select,input{font:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #d4f4ff;outline-offset:3px}
+.topbar{max-width:1290px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 0 15px}
+.brand{display:flex;align-items:center;gap:11px}.brand-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(140deg,#10b6ee,#133b7b);display:grid;place-items:center;box-shadow:0 6px 24px #118def55;font-size:24px}
+.brand small{display:block;font-weight:900;color:#9abbd8;font-size:10px;letter-spacing:.2em}.brand strong{font-size:clamp(17px,2.5vw,26px);font-weight:1000;letter-spacing:-.05em}.brand strong span{color:#4ad6ff}
+.head-actions{display:flex;gap:8px}
+.btn{border:1px solid #41678c;background:#173152;color:#effaff;border-radius:10px;font-weight:850;padding:11px 17px;transition:transform .13s,border-color .13s,background .13s;white-space:nowrap}
+.btn:hover{background:#21466d;border-color:#67c5ff;transform:translateY(-1px)}.btn.primary{background:linear-gradient(120deg,#0ca7d4,#2362ed);border-color:#65dbff;box-shadow:0 7px 26px #178ffe48}.btn.primary:hover{background:linear-gradient(120deg,#17bff1,#3979fb)}.btn.small{padding:9px 13px;font-size:13px}.btn.ghost{background:#10253f}
+main{max-width:1290px;margin:0 auto}.intro{text-align:center;margin:0 0 16px}.eyebrow{color:#92defe;letter-spacing:.16em;font-weight:900;font-size:11px}.intro h1{margin:4px 0 7px;line-height:1.04;font-size:clamp(29px,4.6vw,53px);font-weight:1000;letter-spacing:-.065em}.intro h1 span{color:#55d6ff}.intro p{margin:0;color:#b4cee0;font-size:14px}
+.arena-shell{border-radius:19px;border:1px solid #326088;background:#0a1e33;padding:9px;box-shadow:0 18px 70px #0007,0 0 80px #0ba9ff12}
+.arena{position:relative;aspect-ratio:1200 / 700;border:1px solid #47759b;border-radius:12px;overflow:hidden;background:#0a2938}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+.screen{position:absolute;inset:0;display:grid;place-items:center;padding:15px;background:radial-gradient(ellipse at 50% 44%,#06264abb,#020d20e8);backdrop-filter:blur(5px);z-index:3;overflow-y:auto}
+.screen[hidden]{display:none!important}.panel{width:min(625px,100%);padding:clamp(18px,3vw,34px);text-align:center;border:1px solid #5a88b0;border-radius:21px;box-shadow:0 24px 75px #0009,inset 0 1px #f2f9ff22;background:linear-gradient(148deg,#163f62f7,#08162ef9)}
+.tag{display:inline-block;font-size:11px;letter-spacing:.16em;color:#9ee9ff;font-weight:950;border:1px solid #357b9b;border-radius:50px;padding:5px 13px;background:#13527870;margin-bottom:13px}.panel h2{font-size:clamp(26px,3.5vw,43px);letter-spacing:-.05em;line-height:1.03;margin:0 0 10px;font-weight:1000}.panel p{max-width:490px;margin:0 auto 16px;color:#bdd4e6;font-size:13px}
+.mode-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:17px 0}.mode-card{background:#102747;border:1px solid #476d91;padding:14px 15px;text-align:left;display:flex;flex-direction:column;gap:4px;color:#f3fbff;border-radius:13px}.mode-card strong{font-size:16px}.mode-card small{font-size:12px;color:#a9c4da}.mode-card.selected{background:linear-gradient(145deg,#124568,#172b53);border-color:#68e5ff;box-shadow:inset 0 0 0 1px #52d7ff}.mode-card:hover{border-color:#69cfff}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:13px;text-align:left;margin-bottom:19px}.field{display:flex;flex-direction:column;gap:5px;color:#b7d3e7;font-size:12px;font-weight:900}.field select{color:#f2fbff;background:#0a1b34;border:1px solid #52749b;border-radius:10px;padding:11px}
+/* The soccer match-length slider is adjustable from 1–5 minutes. */
+.match-length-control{background:#0a1b34;border:1px solid #52749b;border-radius:10px;padding:8px 12px 7px;display:flex;flex-direction:column;gap:5px;min-height:47px}
+.match-length-value{color:#8ceaff;font-size:15px;font-weight:1000;text-align:center;line-height:1.15;font-variant-numeric:tabular-nums}
+.match-length-control input[type=range]{width:100%;height:16px;margin:0;cursor:pointer;accent-color:#42d7ff;touch-action:pan-y}
+.match-length-endpoints{display:flex;justify-content:space-between;color:#94aec6;font-size:10px;font-weight:800;letter-spacing:.06em;line-height:1}
+.buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}.buttons .primary{min-width:182px}
+.volume{display:grid;grid-template-columns:110px 1fr 43px;gap:13px;align-items:center;text-align:left;margin:19px 0;font-weight:850}.volume output{text-align:right;color:#8ce4ff;font-variant-numeric:tabular-nums}.volume input{width:100%;accent-color:#3bcbff;cursor:pointer}.settings-tip{color:#86a8c4!important;font-size:12px!important}
+#notice{--notice-accent:#8ceaff;--notice-color:#f4fbff;position:absolute;top:16px;left:50%;transform:translate(-50%,-12px) scale(.96);max-width:min(82vw,560px);padding:12px 18px;border-radius:18px;text-align:center;pointer-events:none;z-index:2;opacity:0;transition:opacity .22s ease,transform .22s ease,filter .22s ease;color:var(--notice-color);background:linear-gradient(180deg,rgba(18,25,40,.88),rgba(9,14,24,.78));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid color-mix(in srgb,var(--notice-accent) 35%, white 8%);box-shadow:0 14px 38px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.08),0 0 18px color-mix(in srgb,var(--notice-accent) 38%, transparent);text-shadow:0 1px 1px rgba(0,0,0,.45);font-size:clamp(13px,2.2vw,24px);font-weight:900;letter-spacing:.04em;line-height:1.1;filter:saturate(.88)}#notice.show{opacity:1;transform:translate(-50%,0) scale(1);filter:saturate(1)}
+/* Only a scored goal gets a large centered announcement. Other notices stay at the top. */
+#notice.goal{top:50%;left:50%;max-width:none;padding:0 20px;background:none;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--notice-accent);font-size:clamp(38px,9vw,104px);line-height:1;font-weight:1000;letter-spacing:.08em;white-space:nowrap;text-shadow:0 2px 2px #00111ce6,0 5px 14px #000b,0 0 14px var(--notice-accent),0 0 32px var(--notice-accent),0 0 62px var(--notice-accent);transform:translate(-50%,-43%) scale(.83)}
+#notice.goal.show{transform:translate(-50%,-50%) scale(1)}
+.toolbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:11px 3px 3px;color:#afc7de;font-size:12px}.toolbar strong{color:#e8f8ff}.helps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.help{background:#0c2038be;border:1px solid #2b5070;border-radius:13px;padding:15px 17px}.help h3{font-size:15px;margin:0 0 8px}.help p{font-size:13px;line-height:2.0;color:#b6ccdf;margin:0}kbd{font:800 12px system-ui;border:1px solid #5d819f;border-bottom-width:3px;background:#173150;border-radius:5px;color:white;padding:2px 7px;white-space:nowrap}
+.touch-controls{display:none;justify-content:space-between;gap:8px;padding:10px 1px 0;flex-wrap:wrap}.touch-group{display:flex;gap:6px}.touch-controls button{min-width:49px;min-height:47px;padding:8px;touch-action:none;user-select:none}.touch-controls button.pressed{background:#187aaf}
+footer{max-width:1290px;margin:14px auto 0;color:#7ea4bd;text-align:center;font-size:12px}
+@media(pointer:coarse){.touch-controls{display:flex}}
+@media(max-width:650px){body{padding:0 7px 18px}.topbar{padding:10px 2px}.brand-icon{height:34px;width:34px;font-size:20px}.brand small{font-size:8px}.head-actions .btn{padding:7px 9px;font-size:11px}.intro{margin-bottom:10px}.intro h1{font-size:26px}.intro p{font-size:11px}.arena-shell{padding:4px}.screen{padding:5px}.panel{padding:10px 12px;border-radius:12px}.tag{margin-bottom:6px;font-size:9px;padding:3px 9px}.panel h2{font-size:22px;margin-bottom:6px}.panel p{font-size:10px;margin-bottom:9px}.mode-row{margin:8px 0;gap:7px}.mode-card{padding:8px}.mode-card strong{font-size:12px}.mode-card small{font-size:10px}.fields{gap:8px;margin-bottom:9px}.field{font-size:10px}.field select{padding:6px;font-size:11px}.match-length-control{padding:5px 8px 4px;gap:2px}.match-length-value{font-size:12px}.match-length-control input[type=range]{height:13px}.match-length-endpoints{font-size:8px}.panel .btn{padding:7px 10px;font-size:11px}.buttons .primary{min-width:130px}.volume{grid-template-columns:69px 1fr 34px;gap:7px;font-size:11px;margin:10px 0}.settings-tip{font-size:10px!important}.helps{grid-template-columns:1fr;gap:8px}.help{padding:11px}.help p{font-size:12px}.touch-controls button{min-height:43px;min-width:39px}.arena{aspect-ratio:1200 / 770}}
+@media(max-width:460px){.brand strong{font-size:15px}.brand-icon{display:none}.intro p{display:none}.mode-card small{display:none}.panel{padding:7px 9px}.panel h2{font-size:19px}.toolbar{font-size:10px}.touch-controls button{min-width:34px;font-size:11px}}
+/* Garage UI — all graphics are generated locally; no external image assets. */
+.garage-main-button{border-color:#ba9b62;background:linear-gradient(125deg,#614622,#71511f);color:#ffeab9}
+.garage-main-button:hover{border-color:#ffe0a2;background:#845e25}
+.panel .menu-tip{margin:11px auto 0;color:#98b9d4;font-size:11px}
+.panel .menu-tip strong{color:#f9da87}
+.panel .menu-tip[hidden]{display:none!important}
+#impossibleTip{border:1px solid #e3a15177;border-radius:10px;background:#6a311e51;color:#ffdcad;padding:8px 10px;max-width:520px}
+.garage-panel{width:min(940px,100%);padding:19px clamp(15px,2.5vw,27px);max-height:100%;overflow:auto}
+.garage-panel h2{font-size:clamp(26px,3vw,38px)}
+.garage-panel>.tag{margin-bottom:7px}
+.garage-panel>p{margin-bottom:10px}
+.garage-team-row{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.garage-team{min-width:0;flex:1;border:1px solid #35577d;background:#0b203a;border-radius:10px;padding:11px;color:#b5d0e5;font-weight:950;font-size:12px}
+.garage-team.selected{background:#113e5e;color:#fff;border-color:#72d5ff;box-shadow:inset 0 0 0 1px #2da6d9}
+.garage-team#garageOrange.selected{background:#51321e;border-color:#ffc06d;box-shadow:inset 0 0 0 1px #dd7c34}
+.garage-layout{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1fr);gap:15px;text-align:left}
+.garage-showcase{background:radial-gradient(ellipse at 50% 35%,#24546b 0%,#0b243c 72%);border:1px solid #39708a;border-radius:13px;padding:11px;display:flex;align-items:center;flex-direction:column;justify-content:center}
+.garage-preview-head{width:100%;display:flex;justify-content:space-between;gap:10px;color:#9cddf0;font-size:10px;font-weight:900;letter-spacing:.09em}
+.hitbox-key{display:flex;align-items:center;gap:5px;color:#ffeda9}.hitbox-key i{display:inline-block;width:13px;height:10px;border:1px dashed #fff0a8}
+#garageCanvas{width:100%;height:auto;max-height:238px;object-fit:contain}
+.garage-name{text-align:center;font-weight:1000;font-size:17px;color:white}
+.garage-dimensions{font-size:12px;color:#f4d99d;margin-top:3px}
+.garage-options{display:flex;flex-direction:column;gap:8px}
+.garage-panel [hidden]{display:none!important}
+.garage-option-label{font-weight:1000;font-size:11px;letter-spacing:.075em;color:#cbeafd;display:flex;align-items:baseline;justify-content:space-between;gap:5px}
+.garage-option-label small{font-size:10px;font-weight:650;color:#8fadc9;letter-spacing:0}
+.body-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.body-option{text-align:left;border:1px solid #345c7c;background:#0b2541;border-radius:10px;padding:10px;color:#ebfaff;min-width:0;transition:border-color .1s,background .1s}
+.body-option strong{display:block;font-size:12px;letter-spacing:.02em}
+.body-option small{display:block;font-size:11px;color:#9ebfd4;margin-top:4px}
+.body-option:hover{border-color:#6bbbe2}.body-option.selected{border-color:#7fe6ff;background:#174b68;box-shadow:inset 0 0 0 1px #47b6e3}
+.paint-grid{display:flex;flex-wrap:wrap;gap:9px;margin-top:3px}
+.paint-swatch{width:34px;height:34px;border-radius:11px;border:2px solid #1c3952;box-shadow:inset 0 0 0 2px #0b1a26,0 2px 8px #0003;position:relative;transition:transform .12s,border-color .12s}
+.paint-swatch:hover{transform:translateY(-2px)}.paint-swatch.selected{border-color:#fff;box-shadow:0 0 0 2px #69dbff,0 0 14px #5dcbf966}
+.paint-swatch.selected:after{content:'✓';color:#041625;text-shadow:0 1px 1px #fff8;display:grid;place-items:center;font-size:20px;font-weight:1000}.paint-swatch:disabled{opacity:.27;filter:grayscale(.65);cursor:not-allowed;border-color:#334b5b;box-shadow:none;transform:none}.paint-swatch:disabled:after{content:'×';position:absolute;inset:0;display:grid;place-items:center;color:#e1ebf6;font-size:23px;font-weight:900;text-shadow:0 1px 5px #000}
+.garage-panel .garage-note{font-size:11px;color:#91b3cb;line-height:1.5;margin:1px 0 0;text-align:left}
+.garage-bottom{margin-top:13px}
+@media(max-width:780px){.garage-panel{padding:10px 12px}.garage-layout{gap:8px}.garage-team{font-size:10px;padding:7px}.body-option{padding:7px}.body-option small{font-size:9px}.paint-swatch{width:27px;height:27px}.garage-panel>p{font-size:11px;margin-bottom:5px}#garageCanvas{max-height:175px}.garage-name{font-size:14px}}
+@media(max-width:550px){.garage-layout{grid-template-columns:1fr}.garage-showcase{padding:6px}#garageCanvas{max-height:105px}.garage-panel{max-height:100%;}.paint-grid{gap:5px}.paint-swatch{width:25px;height:25px}.garage-note{display:none}.garage-option-label{margin-top:2px}.garage-team-row{margin:5px 0}.garage-bottom{margin-top:5px}.garage-panel h2{font-size:20px}.garage-preview-head{font-size:8px}.garage-name{font-size:12px}.body-option strong{font-size:10px}}
+/* Splash animation is an original, entirely canvas-drawn intro. */
+.boot-splash{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#020913;transition:opacity .6s ease,visibility .6s ease}
+.boot-splash[hidden]{display:none!important}.boot-splash.out{opacity:0;visibility:hidden;pointer-events:none}
+#bootCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.boot-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#03081788 0%,transparent 35%,transparent 63%,#030817af 100%)}
+.boot-topline{position:absolute;top:5vh;text-align:center;color:#88dfff;letter-spacing:.33em;font-size:clamp(10px,1.1vw,14px);font-weight:900;text-shadow:0 0 25px #32bfff}
+.boot-logo{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;opacity:0;transform:translateY(26px) scale(.86);transition:opacity .5s,transform .65s cubic-bezier(.22,1.2,.32,1);pointer-events:none;text-shadow:0 9px 25px #000,0 0 36px #37bffd66}
+.boot-splash.reveal .boot-logo{opacity:1;transform:translateY(0) scale(1)}
+.boot-logo .boot-small{font-size:clamp(11px,1.6vw,18px);font-weight:1000;letter-spacing:.29em;color:#b9dfff}
+.boot-logo .boot-main{font-size:clamp(55px,12vw,160px);letter-spacing:-.09em;line-height:.91;font-weight:1000;font-style:italic;color:#f4fbff}
+.boot-logo .boot-main span{color:#4ad7ff}
+.boot-logo .boot-tagline{color:#fdd69d;font-size:clamp(11px,1.5vw,18px);font-weight:900;letter-spacing:.2em}
+.boot-skip{position:absolute;bottom:5vh;right:5vw;border:1px solid #6688a3b3;color:#f5fbff;border-radius:99px;background:#071d38cb;padding:11px 18px;font-size:13px;font-weight:900;cursor:pointer;backdrop-filter:blur(8px)}
+.boot-skip:hover,.boot-skip:focus-visible{background:#14517a;border-color:#b2efff}
+.boot-progress{position:absolute;bottom:0;left:0;width:100%;height:4px;background:#091e36}
+.boot-progress>div{height:100%;width:0;background:linear-gradient(90deg,#27ceff,#ffb455);box-shadow:0 0 16px #4cbcff}
+@media(prefers-reduced-motion:reduce){.boot-splash,.boot-logo{transition:none!important}}
+/* Game mode selector and the new Flappy Car arcade. */
+.modes-panel{width:min(760px,100%);max-height:100%;overflow-y:auto}
+.modes-cards{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:19px 0 16px;text-align:left}
+.game-type{padding:0;overflow:hidden;border-radius:16px;border:2px solid #3c668d;background:#102a49;color:#eafaff;text-align:left;transition:border-color .15s,transform .15s,box-shadow .15s}
+.game-type:hover{transform:translateY(-2px);border-color:#70dcff}.game-type.selected{border-color:#8befff;box-shadow:0 0 0 2px #3ad7ff55,0 0 25px #0acaff25}
+.game-type-art{height:103px;display:grid;place-items:center;font-size:48px;position:relative;text-shadow:0 7px 22px #06152c}
+.game-type-art.soccer{background:radial-gradient(circle at 35% 55%,#166587,#0a2749 75%)}
+.game-type-art.flappy{background:linear-gradient(155deg,#287eab,#163e7e 57%,#644f91);color:#fff}
+.game-type-art:after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 30px,#ffffff09 31px 32px);pointer-events:none}
+.game-type-copy{padding:14px 15px 16px}.game-type-copy strong{font-size:19px;display:block;font-weight:1000}.game-type-copy small{font-size:12px;color:#b6d1e4;display:block;margin-top:5px;line-height:1.4}
+.modes-description{border:1px solid #47769b;background:#0d2944;border-radius:12px;padding:10px 14px;margin:0 0 14px!important;color:#b9e4f2!important}
+.flappy-panel{width:min(590px,100%);background:linear-gradient(145deg,#124b73ec,#0a193af8);border-color:#7dcaf1}
+.flappy-panel h2{font-size:clamp(29px,4vw,51px)}
+.flappy-scoreline{display:flex;justify-content:center;gap:14px;margin:14px auto 19px}
+.flappy-scoreline>div{min-width:115px;border:1px solid #507fa6;border-radius:12px;background:#07203eb8;padding:9px 15px}
+.flappy-scoreline small{display:block;color:#9bcced;font-weight:900;font-size:11px;letter-spacing:.09em}
+.flappy-scoreline strong{display:block;font-size:31px;line-height:1.1;color:#fff}
+.flappy-instruction{font-weight:900;color:#d7f5ff!important}
+.arena-shell.flappy-active .touch-controls{display:none!important}
+.arena-shell.flappy-active canvas#game{cursor:pointer}
+.arena-shell:not(.flappy-active) canvas#game{cursor:crosshair}
+@media(max-width:650px){.modes-cards{gap:7px;margin:9px 0}.game-type-art{height:62px;font-size:33px}.game-type-copy{padding:8px}.game-type-copy strong{font-size:13px}.game-type-copy small{font-size:10px;line-height:1.2;margin-top:2px}.modes-description{font-size:10px!important;padding:7px!important;margin-bottom:8px!important}.flappy-scoreline{margin:7px auto 11px}.flappy-scoreline>div{padding:5px 10px}.flappy-scoreline strong{font-size:20px}}
+/* Leave enough vertical room for menus on narrow phones. Gameplay keeps its usual 1200×700 aspect ratio. */
+@media(max-width:650px){
+ .topbar{flex-wrap:wrap;justify-content:center;gap:8px}
+ .head-actions{width:100%;justify-content:center;flex-wrap:wrap}
+ .arena:has(.screen:not([hidden])){width:100%;aspect-ratio:auto;height:520px;min-height:0}
+ .arena:has(#garageScreen:not([hidden])){height:650px}
+ .arena:has(#gameModesScreen:not([hidden])){height:525px}
+ .arena:has(#flappyScreen:not([hidden])){height:440px}
+ .arena:has(.screen:not([hidden])) #game{position:absolute;inset:0;width:100%;height:100%}
+}
+
+/* Online private rooms: host provides authoritative game state. */
+.online-panel button:disabled{opacity:.4;cursor:not-allowed}
+.online-panel{width:min(94%,650px)!important;max-height:96%;overflow-y:auto;scrollbar-width:thin}
+.online-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}
+.online-actions .btn{min-width:0}
+.online-join{display:flex;align-items:center;gap:8px;margin:12px 0}
+.online-join input{min-width:0;flex:1;letter-spacing:4px;text-transform:uppercase;font-weight:900;text-align:center;border-radius:11px;padding:12px;background:#0a2440;border:1px solid #5496b9;color:#fff;font-size:18px}
+.online-join .btn{flex:0 0 auto}
+.online-room{padding:13px;margin:10px auto;border:1px solid #477fa0;border-radius:12px;background:#061e34c4}
+.online-code{font-size:36px;letter-spacing:7px;font-weight:1000;color:#8eeaff;font-variant-numeric:tabular-nums;margin:3px 0}
+.online-status{font-size:13px;color:#c0dbec;min-height:24px}
+.online-hint{font-size:12px!important;line-height:1.5;color:#a9c7d9}
+.online-label{color:#94def7;font-weight:850;font-size:12px}
+@media(max-width:650px){.arena:has(#onlineScreen:not([hidden])){height:575px}.online-code{font-size:28px;letter-spacing:5px}.online-panel .buttons{gap:7px}.online-actions{grid-template-columns:1fr}.online-join{flex-wrap:wrap}.online-join .btn{width:100%}}
+.online-server-setup{margin:12px 0;padding:12px 14px;border:1px solid #3e7197;border-radius:12px;background:#09213ccf;text-align:left}
+.online-server-row{display:flex;gap:8px;margin:7px 0}
+.online-server-row input{flex:1;min-width:0;border-radius:10px;background:#061b32;color:#f5ffff;padding:10px 12px;border:1px solid #5a95af;font-size:13px}
+.online-server-row .btn{white-space:nowrap}
+.online-server-setup .online-hint{margin:5px 0 0!important}
+
+/* V19: simplified menu navigation; gameplay and physics are unchanged. */
+:root{--deep:#081424;--ink:#eff7ff;--muted:#a8c1d6}
+body{background:linear-gradient(180deg,#061424,#0a1e31 55%,#061322)}
+.intro{display:none}
+.topbar:has(+ main #menuScreen:not([hidden])) .head-actions{display:none}
+.arena-shell:has(.screen:not([hidden])) .toolbar{display:none}
+.topbar{max-width:1100px;padding:14px 4px 12px}
+.brand-icon{border-radius:13px;background:#12314c;box-shadow:none}
+.brand strong{font-size:clamp(17px,2.1vw,23px)}
+.head-actions .btn{border-color:#24445f;background:#10263d;box-shadow:none}
+main{max-width:1100px}
+.arena-shell{border:1px solid #294760;background:#0a1b2b;padding:8px;border-radius:18px;box-shadow:0 18px 55px #01070f77}
+.screen{background:#03101dbb;backdrop-filter:blur(7px)}
+.panel{border:1px solid #3a5872;border-radius:20px;background:#0b1e30f5;box-shadow:0 20px 54px #01060e88;padding:clamp(18px,3vw,30px)}
+.panel h2{font-weight:850;letter-spacing:-.035em}
+.tag{background:#123047;border:1px solid #315a73;color:#99d8ff;font-size:10px;letter-spacing:.1em}
+.btn{font-weight:750;border-color:#355a75;background:#14324c;border-radius:11px}
+.btn.primary{background:#1b9be4;border:1px solid #52c0ff;box-shadow:none;color:#fff}
+.btn.primary:hover{background:#278dd1}
+.btn:hover{transform:none}
+.home-panel{width:min(430px,100%);padding:clamp(22px,4vw,37px);text-align:center}
+.home-crest{height:44px;width:44px;margin:0 auto 14px;display:grid;place-items:center;border-radius:13px;background:#143b59;border:1px solid #286a90;font-size:21px;color:#9beaff}
+.home-kicker{font-size:10px;letter-spacing:.16em;font-weight:800;color:#92b6d4;margin-bottom:6px}
+.home-panel h2{font-size:clamp(31px,4.5vw,42px);letter-spacing:-.07em;white-space:nowrap;margin:0}
+.home-panel h2 span{color:#57d1ff}
+.panel .home-subtitle{color:#adc7d9;font-size:13px;margin:8px auto 20px}
+.home-actions{display:grid;gap:10px}
+.home-action{width:100%;min-height:70px;display:flex;align-items:center;gap:14px;padding:12px 15px;background:#112d46;border:1px solid #2e526d;color:white;border-radius:13px;text-align:left;transition:background .15s,border-color .15s}
+.home-action:hover,.home-action:focus-visible{background:#1b3c5a;border-color:#59b9ec}
+.home-action.home-main{background:#1169a8;border-color:#39b2fb}
+.home-action.home-main:hover{background:#187fc1}
+.home-icon{width:43px;height:43px;border-radius:11px;background:#ffffff13;display:grid;place-items:center;flex:0 0 auto;font-size:20px}
+.home-action-label{display:grid;gap:3px;flex:1}.home-action-label strong{font-size:17px;font-weight:850}.home-action-label small{font-size:12px;color:#b5d1e5}
+.home-arrow{font-size:25px;color:#adcfeb;line-height:1}
+.home-settings{margin:18px 0 0;border:0;background:transparent;color:#bed0e2;padding:9px 16px;font-weight:700;border-radius:9px}
+.home-settings:hover{color:#fff;background:#17314b}
+.setup-panel{width:min(555px,100%)}
+.setup-panel h2,.modes-panel h2{font-size:clamp(25px,3.5vw,36px)}
+.setup-panel .mode-row{margin:20px 0 17px}
+.mode-card{border-color:#335c78;background:#102a42;text-align:center;padding:13px 10px;border-radius:11px;gap:3px}
+.mode-card strong{font-size:15px}.mode-card small{font-size:11px}
+.mode-card.selected{background:#16476a;border-color:#66c7ff;box-shadow:inset 0 0 0 1px #4abaf1}
+.fields .field{font-size:11px;letter-spacing:.03em;gap:7px}
+.field select,.match-length-control{background:#0e263e;border-color:#3a6484}
+.setup-actions{display:flex;align-items:center;gap:10px;margin-top:15px}
+.setup-actions .btn{flex:1;min-height:45px}.setup-actions .btn.primary{flex:1.7}
+.modes-panel{width:min(660px,100%)}
+.modes-cards{gap:12px;margin:18px 0 14px}
+.game-type{border:1px solid #305575;background:#112c45;border-radius:13px;box-shadow:none!important}
+.game-type.selected{border-color:#57c9ff;background:#183f60}
+.game-type-art{height:86px;font-size:37px}
+.game-type-copy{padding:12px 14px 14px}.game-type-copy strong{font-size:17px}.game-type-copy small{font-size:11px}
+.modes-description{background:transparent!important;border:0!important;padding:0!important;margin:0 auto 8px!important;color:#a7bdcf!important}
+.subtle-link{border:0;background:transparent;color:#a6cce6;font-size:12px;font-weight:700;margin:12px auto 0;padding:6px 12px;border-radius:8px}
+.subtle-link:hover{background:#173650;color:#fff}
+.online-advanced{margin:10px 0 14px;text-align:left;font-size:12px;color:#93bfd9}
+.online-advanced>summary{cursor:pointer;padding:9px 12px;border:1px solid #2a4b63;border-radius:9px;list-style:revert}
+.online-advanced:not([open]) .online-server-setup{display:none}
+.online-panel{max-height:100%}
+.online-panel>.tag{margin-bottom:7px}
+.online-panel>p{margin-bottom:13px}
+.controls-expand{max-width:1100px;margin:12px auto 0;border:1px solid #28435b;border-radius:12px;background:#0b2236aa;color:#b3c9d9}
+.controls-expand>summary{cursor:pointer;list-style:revert;padding:12px 16px;font-size:12px;font-weight:750}
+.controls-expand .helps{margin:0;padding:0 12px 12px}
+.toolbar{font-size:11px;padding:8px 3px 2px}
+footer{font-size:11px;color:#7895ab;margin-top:12px}
+@media(max-width:650px){
+ .arena:has(#menuScreen:not([hidden])){height:540px}
+ .arena:has(#soccerSetupScreen:not([hidden])){height:530px}
+ .arena:has(#gameModesScreen:not([hidden])){height:525px}
+ .topbar{justify-content:space-between;flex-wrap:nowrap}
+ .head-actions{width:auto;gap:4px;flex-wrap:nowrap}
+ .head-actions .btn{font-size:11px;padding:7px 8px}
+ .home-panel{max-width:94%;padding:24px 20px}
+ .home-panel h2{font-size:29px}
+ .home-action{min-height:67px;padding:9px 12px}
+ .home-action-label strong{font-size:15px}.home-action-label small{font-size:11px}
+ .home-icon{height:40px;width:40px;font-size:18px}
+ .panel .home-subtitle{font-size:12px;margin:8px auto 18px}
+ .setup-panel{max-width:95%;padding:17px}
+ .setup-panel .mode-row{margin:15px 0}
+ .setup-actions .btn{font-size:12px;min-width:0}
+ .online-advanced{font-size:10px}
+}
+@media(max-width:390px){.brand small{display:none}.brand strong{font-size:14px}.home-panel h2{font-size:26px}.head-actions .btn{font-size:10px}}
+/* Keybind settings: compact, keyboard-accessible editor. */
+.settings-panel{width:min(760px,100%);max-height:100%;overflow-y:auto;padding:clamp(16px,2vw,25px)}
+.settings-panel h2{font-size:clamp(25px,3vw,33px);margin-bottom:3px}
+.settings-panel>p{margin-bottom:13px}
+.settings-audio{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 15px}
+.settings-audio .volume{margin:0;display:grid;grid-template-columns:1fr 43px;gap:5px 10px;padding:10px 12px;background:#091f36;border:1px solid #345a78;border-radius:10px;font-size:12px}
+.settings-audio .volume span{grid-column:1;grid-row:1}.settings-audio .volume output{grid-column:2;grid-row:1}.settings-audio .volume input{grid-column:1/3;grid-row:2}
+.settings-divider{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:950;text-align:left;color:#c6e6f9;font-size:14px;margin:7px 0 8px}
+.keybind-grids{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left}
+.keybind-team{border:1px solid #345875;background:#081d35d9;border-radius:12px;padding:12px}
+.keybind-team h3{font-size:13px;letter-spacing:.01em;margin:0 0 8px;color:#8ce4ff}
+.keybind-team.orange h3{color:#ffd19a}
+.bind-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;min-height:33px;font-size:12px;color:#c5daea;font-weight:750}
+.bind-key{width:126px;max-width:59%;border:1px solid #557b9e;border-radius:8px;background:#193955;color:white;padding:6px 7px;min-height:33px;font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 -2px #06172d}
+.bind-key:hover,.bind-key:focus-visible{border-color:#69e6ff;background:#25587e}
+.bind-key.listening{background:#127a93;border-color:#a1f7ff;color:white;animation:keybind-pulse .75s infinite alternate}
+@keyframes keybind-pulse{to{box-shadow:0 0 0 3px #4cd8ff77}}
+.bind-feedback{font-size:12px;color:#9ddfff;min-height:21px;margin:8px 0 5px;text-align:center}
+.bind-feedback.error{color:#ffaf96}
+.settings-buttons{margin-top:10px}
+.settings-buttons .btn{min-width:unset}
+.arena:has(#settingsScreen:not([hidden])){min-height:870px}
+@media(max-width:650px){.arena:has(#settingsScreen:not([hidden])){height:740px;min-height:740px}.settings-audio{gap:6px}.settings-audio .volume{padding:7px 8px;font-size:11px}.keybind-grids{gap:8px}.keybind-team{padding:8px}.bind-row{font-size:11px}.bind-key{min-width:70px;max-width:62%;width:95px;font-size:10px;padding:5px 4px}.settings-panel{padding:12px}.settings-panel h2{font-size:24px}}
+@media(max-width:380px){.keybind-grids{grid-template-columns:1fr}.arena:has(#settingsScreen:not([hidden])){height:800px;min-height:800px}}
+/* Freeplay is a third arcade mode, with the usual stadium but no opponent. */
+.modes-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+.game-type-art.freeplay{background:radial-gradient(circle at 50% 60%,#247d69,#103e49 75%)}
+@media(max-width:650px){
+  .arena:has(#gameModesScreen:not([hidden])){height:585px}
+  .modes-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #selectFlappy{grid-column:1/-1;display:grid;grid-template-columns:85px 1fr;align-items:center}
+  #selectFlappy .game-type-art{height:100%;min-height:73px;font-size:29px}
+  #selectFlappy .game-type-copy{padding:9px 11px}
+  #selectFlappy .game-type-copy small{display:block}
+}
+
+/* Online team lobby */
+.online-panel{max-height:100%;overflow-y:auto}
+.team-lobby{margin:13px auto 4px;width:min(100%,620px);padding:12px;border-radius:12px;border:1px solid #3c6284;background:#081d32;text-align:left}
+.team-lobby-heading{font-weight:900;font-size:11px;letter-spacing:.11em;color:#b8d8eb;text-align:center;margin-bottom:9px}
+.team-lobby-teams{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.team-lobby-side{background:#0c2943;border:1px solid #375b7d;border-radius:10px;padding:9px;min-height:83px}
+.team-lobby-side:first-child>strong{color:#36caff}.team-lobby-side:last-child>strong{color:#ffa24d}
+.team-lobby-side>strong{display:block;font-size:11px;margin-bottom:5px;letter-spacing:.07em}
+.team-lobby-player{padding:5px 6px;margin:4px 0;background:#122f4b;border-radius:7px;font-size:11px;display:flex;justify-content:space-between;gap:5px;align-items:center}
+.team-lobby-player.me{border:1px solid #81e8ff}
+.team-lobby-player.ready{color:#9fffd5}
+.team-lobby-actions{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.team-lobby-actions .btn{font-size:11px;padding:8px 10px}
+.team-lobby-actions .btn.active{border-color:#8dfed8;background:#12534b}
+.team-lobby-foot{display:flex;justify-content:center;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}
+.team-lobby-foot .btn{min-width:132px}
+@media(max-width:480px){.team-lobby{padding:7px}.team-lobby-side{padding:6px}.team-lobby-player{font-size:10px}.online-panel{padding:13px 11px}.team-lobby-foot .btn{min-width:108px}}
+/* Hidden developer-mode garage switch and cartoon RPG readout. */
+.dev-settings{margin:14px 0 8px;padding:14px;border:1px solid #355c7e;border-radius:13px;background:linear-gradient(140deg,#0b263e,#0a1c33);text-align:left}
+.dev-settings-heading{font-size:13px;font-weight:900;letter-spacing:.055em;color:#c5e6ff;margin-bottom:7px}
+.dev-settings-row{display:flex;gap:8px;align-items:center}.dev-settings-row[hidden]{display:none!important}.dev-settings-row input{background:#071b31;color:#f3fdff;border:1px solid #537d9f;border-radius:9px;padding:9px 11px;max-width:170px;min-width:0;flex:1;letter-spacing:.14em}
+.dev-status{margin:7px 0 2px!important;color:#8eb6ce!important;font-size:11px!important;text-align:left}.dev-status.success{color:#7ff0c4!important}.dev-status.error{color:#ffa7a7!important}
+.dev-rpg-row{display:flex;align-items:center;gap:12px;padding:11px;margin-top:9px;border-radius:10px;border:1px solid #416c85;background:#143047;color:#f0faff;cursor:pointer}
+.dev-rpg-row[hidden]{display:none!important}.dev-rpg-row input{width:21px;height:21px;accent-color:#5debbf;flex-shrink:0}.dev-rpg-row strong{display:block;font-size:13px}.dev-rpg-row small{display:block;color:#a6cddd;font-size:11px;margin-top:2px}
+@media(max-width:550px){.dev-settings{padding:10px;margin-top:9px}.dev-settings-heading{font-size:11px}.dev-settings-row input{padding:7px 8px}.dev-rpg-row{padding:8px}}
+</style>
+</head>
+<body>
+<!-- Standalone offline edition: no external scripts, multiplayer server, or network requests. -->
+<!-- Full-screen cinematic intro shown once on each page load. -->
+<div class="boot-splash" id="bootSplash" aria-label="Animated Rocket Rivals introduction">
+  <canvas id="bootCanvas" width="1200" height="700" aria-hidden="true"></canvas>
+  <div class="boot-shade"></div>
+  <div class="boot-topline">TWO RIVALS · ONE ARENA</div>
+  <div class="boot-logo" id="bootLogo"><div class="boot-small">WELCOME TO THE ARENA</div><div class="boot-main">ROCKET <span>RIVALS</span></div><div class="boot-tagline">DRIVE · BOOST · DOMINATE</div></div>
+  <button class="boot-skip" id="bootSkip" type="button">SKIP INTRO →</button>
+  <div class="boot-progress"><div id="bootProgress"></div></div>
+</div>
+<header class="topbar">
+  <div class="brand"><div class="brand-icon">🚀</div><div><small>ARCADE CAR GAMES</small><strong>ROCKET <span>RIVALS</span> 2D</strong></div></div>
+  <div class="head-actions"><button class="btn small ghost" id="headerModes">Modes</button><button class="btn small ghost" id="menuButton">Home</button><button class="btn small ghost" id="settingsButton" aria-label="Audio settings">⚙ Settings</button></div>
+</header>
+<main>
+  <div class="intro"><div class="eyebrow">OFFLINE EDITION · NO SERVER REQUIRED</div><h1>DRIVE. BOOST. <span>SCORE.</span></h1><p>Bird’s-eye-view car soccer, challenging bots, local multiplayer, and arcade modes — no online account needed.</p></div>
+  <div class="arena-shell" id="gameShell">
+    <div class="arena">
+      <canvas id="game" width="1200" height="700" aria-label="Top-down two-dimensional car soccer game"></canvas>
+      <div id="notice" aria-live="polite"></div>
+      <section class="screen" id="menuScreen" aria-label="Main menu">
+        <div class="panel home-panel">
+          <div class="home-crest" aria-hidden="true">⚡</div>
+          <div class="home-kicker">WELCOME TO THE ARENA</div>
+          <h2>ROCKET <span>RIVALS</span></h2>
+          <p class="home-subtitle">Choose how you want to play.</p>
+          <div class="home-actions">
+            <button class="home-action home-main" id="menuModes" type="button"><span class="home-icon">▶</span><span class="home-action-label"><strong>Play</strong><small>Car Soccer &amp; Flappy Car</small></span><span class="home-arrow">›</span></button>
+            <button class="home-action" id="menuGarage" type="button"><span class="home-icon">🚗</span><span class="home-action-label"><strong>Garage</strong><small>Customize your car</small></span><span class="home-arrow">›</span></button>
+          </div>
+          <button class="home-settings" id="menuSettings" type="button">⚙ Settings</button>
+        </div>
+      </section>
+      <section class="screen" id="soccerSetupScreen" aria-label="Car Soccer match settings" hidden>
+        <div class="panel setup-panel">
+          <div class="tag">CAR SOCCER</div>
+          <h2>Match setup</h2>
+          <p>Choose your opponents and match length.</p>
+          <div class="mode-row" role="group" aria-label="Match mode">
+            <button class="mode-card selected" id="soloMode" aria-pressed="true" type="button"><strong>1 Player</strong><small>Play against a bot</small></button>
+            <button class="mode-card" id="duoMode" aria-pressed="false" type="button"><strong>2 Players</strong><small>Same keyboard</small></button>
+          </div>
+          <div class="fields"><label class="field">BOT DIFFICULTY<select id="difficulty"><option value="rookie">Rookie · Easy</option><option value="pro" selected>Pro · Medium</option><option value="allstar">All-Star · Hard</option><option value="impossible">Impossible</option></select></label><div class="field"><label for="matchLength">MATCH LENGTH</label>
+            <div class="match-length-control">
+              <output class="match-length-value" id="matchLengthValue" for="matchLength">2 minutes</output>
+              <input id="matchLength" type="range" min="1" max="5" step="1" value="2" aria-label="Soccer match length in minutes" aria-valuetext="2 minutes">
+              <div class="match-length-endpoints" aria-hidden="true"><span>1 MIN</span><span>5 MIN</span></div>
+            </div>
+          </div></div>
+          <p class="menu-tip" id="impossibleTip" hidden>Impossible is designed to be unbeatable.</p>
+          <div class="setup-actions"><button class="btn ghost" id="soccerBack" type="button">← Back</button><button class="btn primary" id="playButton" type="button">Start match →</button></div>
+        </div>
+      </section>
+<section class="screen" id="gameModesScreen" aria-label="Game modes" hidden>
+        <div class="panel modes-panel">
+          <div class="tag">PLAY</div><h2>Choose a mode</h2>
+          <p>Pick a game to get started.</p>
+          <div class="modes-cards" role="group" aria-label="Available games">
+            <button class="game-type selected" id="selectSoccer" aria-pressed="true" type="button"><div class="game-type-art soccer">⚽</div><div class="game-type-copy"><strong>Car Soccer</strong><small id="soccerModeSummary">2-minute matches · solo or local 2-player</small></div></button>
+            <button class="game-type" id="selectFreeplay" aria-pressed="false" type="button"><div class="game-type-art freeplay">🚗</div><div class="game-type-copy"><strong>Freeplay</strong><small>No opponent · unlimited time</small></div></button>
+            <button class="game-type" id="selectFlappy" aria-pressed="false" type="button"><div class="game-type-art flappy">☁️</div><div class="game-type-copy"><strong>Flappy Car</strong><small>Fly through gaps · set a high score</small></div></button>
+          </div>
+          <p class="modes-description" id="modesDescription">Score goals against a bot or a friend.</p>
+          <div class="setup-actions"><button class="btn ghost" id="modesBack">← Back</button><button class="btn primary" id="startModeButton">Continue →</button></div><button class="subtle-link" id="modesGarage">Customize car</button>
+        </div>
+      </section>
+      <section class="screen" id="flappyScreen" aria-label="Flappy Car menu" hidden>
+        <div class="panel flappy-panel"><div class="tag" id="flappyTag">☁️ NEW ARCADE MODE</div><h2 id="flappyTitle">FLAPPY CAR</h2>
+          <p class="flappy-instruction" id="flappyDescription">Tap, click, or press Space / W / ↑ to flap your car upward. Fly between the obstacles without crashing!</p>
+          <div class="flappy-scoreline"><div><small>SCORE</small><strong id="flappyScoreText">0</strong></div><div><small>BEST</small><strong id="flappyBestText">0</strong></div></div>
+          <div class="buttons"><button class="btn primary" id="flappyStart">▶ START FLYING</button><button class="btn ghost" id="flappyModes">← GAME MODES</button></div>
+          <button class="subtle-link" id="flappyCustomize" type="button">🎨 Change Flappy Car Color</button>
+        </div>
+      </section>
+      <section class="screen" id="garageScreen" aria-label="Car customization garage" hidden>
+        <div class="panel garage-panel">
+          <div class="tag">CUSTOMIZATION</div><h2 id="garageTitle">Garage</h2>
+          <p id="garageIntro">Pick a body and color for each car. Body shapes affect collisions.</p>
+          <div class="garage-team-row" id="garageTeamRow" role="group" aria-label="Choose car to customize">
+            <button class="garage-team selected" id="garageBlue" aria-pressed="true">🔵 BLUE · PLAYER 1</button>
+            <button class="garage-team" id="garageOrange" aria-pressed="false">🟠 ORANGE · PLAYER 2 / BOT</button>
+          </div>
+          <div class="garage-layout">
+            <div class="garage-showcase">
+              <div class="garage-preview-head"><span>LIVE PREVIEW</span><span class="hitbox-key"><i></i> TRUE HITBOX</span></div>
+              <canvas id="garageCanvas" width="480" height="286" aria-label="Selected car viewed from above with collision box overlay"></canvas>
+              <div class="garage-name" id="garageChoice">Striker · Sky Blue</div>
+              <div class="garage-dimensions" id="garageHitbox">Hitbox: 70 × 40</div>
+            </div>
+            <div class="garage-options">
+              <div class="garage-option-label" id="garageBodyLabel">BODY TYPE <small>Different sizes = different hits</small></div>
+              <div class="body-grid" id="bodyChoices">
+                <button class="body-option selected" data-body="balanced" aria-pressed="true"><strong>STRIKER</strong><small>70 × 40 · balanced</small></button>
+                <button class="body-option" data-body="slim" aria-pressed="false"><strong>SPRINT</strong><small>62 × 34 · compact</small></button>
+                <button class="body-option" data-body="long" aria-pressed="false"><strong>LONGSHOT</strong><small>88 × 34 · long reach</small></button>
+                <button class="body-option" data-body="wide" aria-pressed="false"><strong>BULLDOZER</strong><small>76 × 50 · wide contact</small></button>
+                <button class="body-option" data-body="wedge" aria-pressed="false"><strong>ARROWHEAD</strong><small>84 × 44 · tapered front</small></button>
+                <button class="body-option" data-body="clown" aria-pressed="false"><strong>🤡 CLOWN CAR</strong><small>36 × 24 · super tiny!</small></button>
+              </div>
+              <div class="garage-option-label">PAINT COLOR <small>Works on either team</small></div>
+              <div class="paint-grid" id="paintChoices" role="group" aria-label="Car paint color"></div>
+              <p class="garage-note" id="garageNote">The dashed outline shows each car’s real collision shape. The Clown Car is a much smaller target! Choices save automatically in this browser.</p>
+            </div>
+          </div>
+          <div class="buttons garage-bottom"><button class="btn" id="garageBack">← MAIN MENU</button><button class="btn primary" id="garagePlay">▶ PLAY WITH THIS CAR</button></div>
+        </div>
+      </section>
+      <section class="screen" id="settingsScreen" aria-label="Game settings" hidden><div class="panel settings-panel"><div class="tag">SETTINGS</div><h2>Sound &amp; Controls</h2><p>Customize your keyboard for both players.</p>
+        <div class="settings-audio">
+          <label class="volume" for="musicVolume"><span>♫ Music</span><input type="range" id="musicVolume" min="0" max="100" step="5" value="35"><output id="musicOutput">35%</output></label>
+          <label class="volume" for="sfxVolume"><span>🔊 Effects</span><input type="range" id="sfxVolume" min="0" max="100" step="5" value="65"><output id="sfxOutput">65%</output></label>
+        </div>
+        <div class="settings-divider"><span>⌨ Keyboard controls</span></div>
+        <div class="keybind-grids" id="keybindGrids" aria-label="Change car soccer keybinds"></div>
+        <div id="bindFeedback" class="bind-feedback" role="status" aria-live="polite">Click a key, then press the replacement on your keyboard.</div>
+        <p class="settings-tip">Saved automatically on this device. Escape cancels editing. Mouse steering and Flappy Car controls are unchanged.</p>
+        <div class="dev-settings" aria-label="Developer code options">
+          <div class="dev-settings-heading">DEV CODE</div>
+          <div class="dev-settings-row" id="devCodeEntry"><input id="devCode" type="text" maxlength="4" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Enter developer code" placeholder="Enter code"><button class="btn small" id="devUnlock" type="button">Unlock</button></div>
+          <p id="devStatus" class="dev-status" role="status" aria-live="polite">Enter a code to unlock extra game options.</p>
+          <label class="dev-rpg-row" id="devRpgRow" hidden><input id="devRpgToggle" type="checkbox"><span><strong>Cartoon RPG <span id="devRpgState">OFF</span></strong><small>Local 2-player: only Blue can use it. Online: any player can unlock it and fire with E.</small></span></label>
+        </div>
+        <div class="buttons settings-buttons"><button class="btn small" id="resetKeybinds" type="button">↻ Reset Keys</button><button class="btn primary" id="settingsBack">← BACK</button></div>
+      </div></section>
+      <section class="screen" id="pauseScreen" aria-label="Pause menu" hidden><div class="panel"><div class="tag">MATCH PAUSED</div><h2>PAUSED</h2><p>Take a break — the match clock and cars are stopped.</p><div class="buttons"><button class="btn primary" id="resumeButton">▶ RESUME</button><button class="btn" id="pauseSettings">⚙ SETTINGS</button><button class="btn" id="pauseLobby" hidden>↩ ONLINE LOBBY</button><button class="btn" id="pauseMenu">☰ MAIN MENU</button></div></div></section>
+      <section class="screen" id="endScreen" aria-label="Match complete" hidden><div class="panel"><div class="tag">FULL TIME</div><h2 id="endTitle">MATCH COMPLETE</h2><p id="endResult">Great match!</p><div class="buttons"><button class="btn primary" id="rematchButton">↻ REMATCH</button><button class="btn" id="endMenu">☰ MAIN MENU</button></div></div></section>
+    </div>
+    <div class="touch-controls" id="touchControls"><div class="touch-group"><button class="btn" data-key="KeyA">←</button><button class="btn" data-key="KeyW">↑</button><button class="btn" data-key="KeyS">↓</button><button class="btn" data-key="KeyD">→</button></div><div class="touch-group"><button class="btn" data-key="ShiftLeft">BOOST</button><button class="btn" data-key="Space">DRIFT</button></div></div>
+    <div class="toolbar"><span id="toolbarTip">Move with <kbd>WASD</kbd> or hold <kbd>Left Mouse</kbd> to steer 360° · <kbd>Shift</kbd> Boost · <kbd>Esc</kbd> Pause</span><strong id="matchLabel">TOP-DOWN · 1 PLAYER · PRO</strong></div>
+  </div>
+  <details class="controls-expand"><summary>Controls &amp; tips</summary><div class="helps"><section class="help"><h3 id="helpTitle1">🔵 Blue — Player 1</h3><p id="helpText1"><kbd>WASD</kbd> Move · <kbd>Mouse drag</kbd> Drive at any 360° angle · <kbd>Shift</kbd> Boost · <kbd>Space</kbd> Drift</p></section><section class="help"><h3 id="helpTitle2">🟠 Orange — Player 2</h3><p id="helpText2"><kbd>Arrow keys</kbd> Move with smooth turning · <kbd>M</kbd> Boost · <kbd>N</kbd> Drift<br><b>Local two-player mode:</b> both players share one keyboard. Player 1 can also use the mouse.</p></section></div></details>
+</main>
+<footer>Rocket Rivals 2D · Play in your browser</footer>
+<script>
+'use strict';
+// Rocket Rivals — self-contained original top-down car soccer game.
+// Solo and Flappy Car work offline. Online rooms use the configured Render Web Service or a same-origin WebSocket server.
+const $=id=>document.getElementById(id);
+const canvas=$('game'),g=canvas.getContext('2d');
+const W=1200,H=700,FIELD={left:130,right:1070,top:106,bottom:626},GOAL={top:288,bottom:444,depth:102};
+const MID_Y=(FIELD.top+FIELD.bottom)/2,TAU=Math.PI*2;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const rand=(a,b)=>a+(b-a)*Math.random();
+const len=(x,y)=>Math.hypot(x,y),angleDiff=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
+const screens={menu:$('menuScreen'),setup:$('soccerSetupScreen'),modes:$('gameModesScreen'),flappy:$('flappyScreen'),garage:$('garageScreen'),settings:$('settingsScreen'),pause:$('pauseScreen'),end:$('endScreen')};
+const profiles={rookie:{label:'ROOKIE',speed:0.61,think:.36,lead:.05,error:76,boost:.14,turn:1.5},pro:{label:'PRO',speed:.83,think:.16,lead:.2,error:30,boost:.55,turn:2.25},allstar:{label:'ALL-STAR',speed:1,think:.07,lead:.33,error:10,boost:.93,turn:2.9},impossible:{label:'IMPOSSIBLE',speed:1.65,think:0,lead:.9,error:0,boost:1,turn:5}};
+const MATCH_SECONDS=120, START_BOOST=33, DEMO_SPEED=455, DEMO_RESPAWN=3, SPAWN_SHIELD=1.25;
+const BODY_TYPES={balanced:{name:'Striker',length:70,width:40,description:'Balanced'},slim:{name:'Sprint',length:62,width:34,description:'Compact'},long:{name:'Longshot',length:88,width:34,description:'Long reach'},wide:{name:'Bulldozer',length:76,width:50,description:'Wide contact'},wedge:{name:'Arrowhead',length:84,width:44,description:'Narrow pointed nose'},clown:{name:'Clown Car',length:36,width:24,description:'Super tiny'}};
+const PAINTS=[{name:'Sky Blue',hex:'#36caff'},{name:'Royal Blue',hex:'#5d7cff'},{name:'Mint',hex:'#30e4b4'},{name:'Purple',hex:'#ac8aff'},{name:'Hot Pink',hex:'#ff75c9'},{name:'Flame Orange',hex:'#ffa24d'},{name:'Cherry Red',hex:'#fb6673'},{name:'Gold',hex:'#ffdb6c'},{name:'Pearl White',hex:'#d6eef7'}];
+let customCars=[{body:'balanced',color:'#36caff'},{body:'balanced',color:'#ffa24d'}],garageTeam=0;
+try{const saved=JSON.parse(localStorage.getItem('rocketRivalsGarage')||'null');if(Array.isArray(saved)&&saved.length===2){for(let i=0;i<2;i++){if(saved[i]&&BODY_TYPES[saved[i].body]&&PAINTS.some(p=>p.hex===saved[i].color))customCars[i]={body:saved[i].body,color:saved[i].color}}}}catch(e){}
+function saveGarage(){try{localStorage.setItem('rocketRivalsGarage',JSON.stringify(customCars))}catch(e){}}
+// Soccer teams may never share a paint color. If an older save contains a clash,
+// Player 1 keeps their choice and Player 2 receives the next available paint.
+function ensureDistinctGarageColors(primaryTeam=0,persist=true){
+ if(customCars[0].color!==customCars[1].color)return;
+ const otherTeam=1-primaryTeam;
+ const preferred=otherTeam===1?'#ffa24d':'#36caff';
+ const alternate=PAINTS.find(p=>p.hex===preferred&&p.hex!==customCars[primaryTeam].color)||PAINTS.find(p=>p.hex!==customCars[primaryTeam].color);
+ if(!alternate)return;
+ customCars[otherTeam].color=alternate.hex;
+ if(persist)saveGarage();
+}
+ensureDistinctGarageColors();
+// Flappy Car always uses the standard Striker body and collision size.
+// Its separate paint selection never alters either Car Soccer player's garage choices.
+const FLAPPY_BODY='balanced';
+let flappyColor=customCars[0].color;
+try{const saved=localStorage.getItem('rocketRivalsFlappyColor');if(PAINTS.some(p=>p.hex===saved))flappyColor=saved}catch(e){}
+function saveFlappyColor(){try{localStorage.setItem('rocketRivalsFlappyColor',flappyColor)}catch(e){}}
+function flappyColorName(){return PAINTS.find(p=>p.hex===flappyColor)?.name||'Custom'}
+
+let gameType='soccer',selectedGameType='soccer',garageReturn='menu',garageContext='soccer',flappyReturnState='flappyReady';
+let state='menu',mode='solo',difficulty='pro',duration=MATCH_SECONDS,time=MATCH_SECONDS,score=[0,0],demos=[0,0],impossibleSaves=0,lastImpossibleSave=-10,blue,orange,ball,extraCars=[];
+let keys=Object.create(null),particles=[],demoFx=[],pads=[],cameraShake=0,goalDelay=0,noticeTime=0,settingsReturn='menu',lastFrame=performance.now(),acc=0,worldTime=0;
+// Developer unlock is a fun, local game setting, not a security boundary.
+let devUnlocked=false,devRpgEnabled=false,rockets=[];
+const RPG_SPEED=790,RPG_COOLDOWN=2.5,RPG_LIFETIME=1.65;
+try{const saved=JSON.parse(localStorage.getItem('rocketRivalsDevV30')||'null');if(saved?.unlocked===true){devUnlocked=true;devRpgEnabled=saved.rpg===true}}catch(e){}
+function saveDevSettings(){try{localStorage.setItem('rocketRivalsDevV30',JSON.stringify({unlocked:devUnlocked,rpg:devRpgEnabled}))}catch(e){}}
+function renderDevSettings(){
+ $('devCodeEntry').hidden=devUnlocked;$('devRpgRow').hidden=!devUnlocked;
+ $('devRpgToggle').checked=devRpgEnabled;$('devRpgState').textContent=devRpgEnabled?'ON':'OFF';
+ $('devStatus').textContent=devUnlocked?'Unlocked! Local 2-player: Blue only. Online: any player can use it.':'Enter a code to unlock extra game options.';
+ $('devStatus').className='dev-status'+(devUnlocked?' success':'');
+}
+function unlockDevCode(){
+ if($('devCode').value.trim()==='0916'){devUnlocked=true;devRpgEnabled=false;$('devCode').value='';saveDevSettings();renderDevSettings();audio.fx('pad')}
+ else{$('devStatus').textContent='Code not recognized.';$('devStatus').className='dev-status error'}
+}
+$('devUnlock').onclick=unlockDevCode;
+$('devCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();unlockDevCode()}});
+$('devRpgToggle').addEventListener('change',e=>{devRpgEnabled=devUnlocked&&e.target.checked;saveDevSettings();renderDevSettings();audio.fx('click')});
+renderDevSettings();
+
+// Music and sound effects use original synthesizer sequences generated with Web Audio.
+const audio={ctx:null,musicGain:null,fxGain:null,musicVol:35,sfxVol:65,step:0,next:0,
+ ensure(){try{if(!this.ctx){this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.musicGain=this.ctx.createGain();this.fxGain=this.ctx.createGain();this.musicGain.connect(this.ctx.destination);this.fxGain.connect(this.ctx.destination);this.setVolume()}if(this.ctx.state==='suspended')this.ctx.resume();this.next=this.ctx.currentTime+.03}catch(e){this.ctx=null}},
+ setVolume(){if(!this.ctx)return;this.musicGain.gain.setTargetAtTime(this.musicVol/100*.14,this.ctx.currentTime,.045);this.fxGain.gain.setTargetAtTime(this.sfxVol/100*.23,this.ctx.currentTime,.045)},
+ tone(hz,start,dur,type,vol,target,slide){if(!this.ctx||!target)return;const osc=this.ctx.createOscillator(),v=this.ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(Math.max(30,hz),start);if(slide)osc.frequency.exponentialRampToValueAtTime(Math.max(30,hz+slide),start+dur);v.gain.setValueAtTime(.0001,start);v.gain.exponentialRampToValueAtTime(Math.max(.0001,vol),start+.009);v.gain.exponentialRampToValueAtTime(.0001,start+dur);osc.connect(v);v.connect(target);osc.start(start);osc.stop(start+dur+.01)},
+ music(){if(!this.ctx||this.ctx.state!=='running'||(state!=='play'&&state!=='flappyPlay'))return;const gap=60/118/4,mel=[329.63,392,440,523.25,493.88,392,329.63,293.66],bass=[110,130.81,146.83,98];while(this.next<this.ctx.currentTime+.15){const k=this.step%32;if(k%4===0){this.tone(bass[Math.floor(k/8)],this.next,.26,'triangle',.30,this.musicGain);this.tone(85,this.next,.10,'sine',.13,this.musicGain,-40)}if(k%2===0)this.tone(mel[Math.floor(k/2)%8],this.next,.13,'sine',.10,this.musicGain);if(k%8===6)this.tone(210,this.next,.045,'triangle',.07,this.musicGain,-100);this.step++;this.next+=gap}},
+ fx(name){if(!this.ctx||this.ctx.state!=='running')return;const t=this.ctx.currentTime+.01;if(name==='hit')this.tone(180,t,.105,'sawtooth',.30,this.fxGain,-125);if(name==='boost')this.tone(115,t,.07,'sawtooth',.14,this.fxGain,-70);if(name==='pad')this.tone(580,t,.12,'sine',.24,this.fxGain,340);if(name==='click')this.tone(440,t,.08,'sine',.20,this.fxGain);if(name==='goal')[392,494,587,784].forEach((f,i)=>this.tone(f,t+i*.11,.30,'triangle',.47,this.fxGain));if(name==='demo'){this.tone(165,t,.34,'sawtooth',.68,this.fxGain,-130);this.tone(66,t+.04,.42,'triangle',.52,this.fxGain,-28)}}
+};
+try{const s=JSON.parse(localStorage.getItem('rocketRivalsSettings')||'{}');audio.musicVol=clamp(Number(s.music??35)||0,0,100);audio.sfxVol=clamp(Number(s.sfx??65)||0,0,100)}catch(e){}
+function saveVolumes(){try{localStorage.setItem('rocketRivalsSettings',JSON.stringify({music:audio.musicVol,sfx:audio.sfxVol}))}catch(e){}}
+for(const [name,key] of [['music','musicVol'],['sfx','sfxVol']]){const slider=$(name+'Volume'),output=$(name+'Output');slider.value=audio[key];output.textContent=audio[key]+'%';slider.addEventListener('input',()=>{audio[key]=+slider.value;output.textContent=slider.value+'%';audio.setVolume();saveVolumes()})}
+
+function newCar(x,y,angle,team,bot){const selected=customCars[team],shape=BODY_TYPES[selected.body];return{x,y,angle,vx:0,vy:0,angular:0,throttle:0,turn:0,boost:START_BOOST,boosting:false,drifting:false,color:selected.color,team,bodyId:selected.body,bot,bodyLength:shape.length,bodyWidth:shape.width,aiTimer:0,attackPhase:'setup',attackCooldown:0,aiControl:{gas:0,steer:0,boost:false,drift:false},route:false,routeSide:1,trailTimer:0,boostFxTimer:0,demolished:false,respawnTimer:0,spawnShield:0,rpgCooldown:0,rpgEquipped:false}}
+function buildPads(){pads=[{x:FIELD.left+190,y:FIELD.top+100,large:false},{x:FIELD.left+190,y:FIELD.bottom-100,large:false},{x:FIELD.right-190,y:FIELD.top+100,large:false},{x:FIELD.right-190,y:FIELD.bottom-100,large:false},{x:600,y:FIELD.top+108,large:true},{x:600,y:FIELD.bottom-108,large:true}].map(p=>({...p,respawn:0,phase:rand(0,TAU)}))}
+function soccerCars(){return isFreeplay()?[blue]:mode==='online'&&online.started?[blue,orange,...extraCars]:[blue,orange]}
+function applyCarChoice(car,choice){const profile=safeCustomization(choice);car.bodyId=profile.body;car.bodyLength=BODY_TYPES[profile.body].length;car.bodyWidth=BODY_TYPES[profile.body].width;car.color=profile.color}
+function resetRound(){
+ demoFx=[];rockets=[];extraCars=[];online.playerCars={};
+ if(mode==='online'&&online.started&&online.players.length>=2){
+  const teamCounts=[0,0];
+  for(const p of online.players){
+   const team=p.team===1?1:0,slot=teamCounts[team]++;
+   const x=team===0?slot?410:340:slot?790:860;
+   const y=slot?MID_Y+112:MID_Y-80;
+   const car=newCar(x,y,team===0?0:Math.PI,team,false);
+   car.ownerId=p.id;applyCarChoice(car,p.car);
+   if(slot===0&&team===0)blue=car;
+   else if(slot===0&&team===1)orange=car;
+   else extraCars.push(car);
+   online.playerCars[p.id]=car;
+  }
+ }else{blue=newCar(340,MID_Y,0,0,false);orange=newCar(860,MID_Y,Math.PI,1,mode==='solo')}
+ ball={x:W/2,y:MID_Y,vx:0,vy:0,r:20,spin:0,pinchCooldown:0,lastTouchTeam:-1,lastTouchColor:null};particles=[];cameraShake=0;for(const p of pads)p.respawn=0;
+}
+function showScreen(id){Object.entries(screens).forEach(([name,screen])=>screen.hidden=name!==id)}
+function selectedGarageCar(){return garageContext==='flappy'?{body:FLAPPY_BODY,color:flappyColor}:customCars[garageTeam]}
+function openGarage(team=0,origin='menu'){
+ const forFlappy=origin==='flappy'||(origin==='modes'&&selectedGameType==='flappy');
+ if(origin==='flappy')flappyReturnState=state;
+ releaseMouseDrive();leaveOnline();keys=Object.create(null);state='menu';gameType='soccer';garageReturn=origin;garageContext=forFlappy?'flappy':'soccer';garageTeam=forFlappy?0:team;
+ $('garageTitle').textContent=forFlappy?'Flappy Car Colors':'Garage';
+ $('garageIntro').textContent=forFlappy?'Flappy Car uses one fixed Striker body. Pick any paint color!':'Pick a body and color for each car. Body shapes affect collisions.';
+ $('garageTeamRow').hidden=forFlappy;
+ $('garageBodyLabel').hidden=forFlappy;
+ $('bodyChoices').hidden=forFlappy;
+ $('garageNote').textContent=forFlappy?'The body and hitbox stay the same in every Flappy Car run. Your paint color is saved separately from Car Soccer.':'The dashed outline shows each car’s real collision shape. The Clown Car is a much smaller target! Choices save automatically in this browser.';
+ $('garageBack').textContent=origin==='flappy'?'← FLAPPY CAR':origin==='modes'?'← GAME MODES':'← MAIN MENU';
+ $('garagePlay').textContent=forFlappy?'▶ PLAY FLAPPY CAR':'▶ PLAY WITH THIS CAR';
+ updateGarage();showScreen('garage');
+}
+function updateGarage(){
+ const selected=selectedGarageCar(),shape=BODY_TYPES[selected.body],color=PAINTS.find(p=>p.hex===selected.color);
+ for(const [idx,id] of [[0,'garageBlue'],[1,'garageOrange']]){const active=idx===garageTeam;$(id).classList.toggle('selected',active);$(id).setAttribute('aria-pressed',String(active))}
+ for(const button of document.querySelectorAll('[data-body]')){const active=button.dataset.body===selected.body;button.classList.toggle('selected',active);button.setAttribute('aria-pressed',String(active))}
+ for(const button of document.querySelectorAll('[data-paint]')){
+  const active=button.dataset.paint===selected.color;
+  const taken=garageContext!=='flappy'&&button.dataset.paint===customCars[1-garageTeam].color;
+  button.classList.toggle('selected',active);button.disabled=taken;
+  button.setAttribute('aria-pressed',String(active));
+  button.title=taken?'Already selected by Player '+(2-garageTeam):PAINTS.find(p=>p.hex===button.dataset.paint)?.name||'Paint color';
+  button.setAttribute('aria-label',button.title);
+ }
+ $('garageChoice').textContent=shape.name+' · '+(color?.name||'Custom');
+ $('garageHitbox').textContent='Hitbox: '+shape.length+' × '+shape.width+' game units'+(selected.body==='wedge'?' · tapered polygon':'');
+ drawGaragePreview();
+}
+function drawGaragePreview(){
+ const preview=$('garageCanvas'),pg=preview.getContext('2d'),w=preview.width,h=preview.height;
+ pg.clearRect(0,0,w,h);
+ const size=24;pg.strokeStyle='#73bbd714';pg.lineWidth=1;
+ for(let x=0;x<w;x+=size){pg.beginPath();pg.moveTo(x,0);pg.lineTo(x,h);pg.stroke()}
+ for(let y=0;y<h;y+=size){pg.beginPath();pg.moveTo(0,y);pg.lineTo(w,y);pg.stroke()}
+ pg.save();pg.translate(w/2,h/2);pg.scale(2.8,2.8);
+ const selected=selectedGarageCar(),shape=BODY_TYPES[selected.body];
+ const sample={x:0,y:0,angle:-.16,color:selected.color,team:garageTeam,bodyId:selected.body,bodyLength:shape.length,bodyWidth:shape.width,boosting:false,demolished:false,spawnShield:0};
+ drawCar(sample,pg);
+ pg.save();pg.rotate(sample.angle);pg.strokeStyle='#ffdf85';pg.lineWidth=1.35;pg.setLineDash([4,2.8]);tracePolygon(pg,localCarShape(sample));pg.stroke();pg.restore();pg.restore();
+}
+for(const color of PAINTS){const button=document.createElement('button');button.className='paint-swatch';button.type='button';button.style.background=color.hex;button.dataset.paint=color.hex;button.title=color.name;button.setAttribute('aria-label',color.name);button.addEventListener('click',()=>{if(garageContext==='flappy'){flappyColor=color.hex;saveFlappyColor()}else{if(customCars[1-garageTeam].color===color.hex)return;customCars[garageTeam].color=color.hex;saveGarage()}updateGarage();audio.fx('click')});$('paintChoices').appendChild(button)}
+for(const button of document.querySelectorAll('[data-body]'))button.addEventListener('click',()=>{if(garageContext==='flappy')return;customCars[garageTeam].body=button.dataset.body;saveGarage();updateGarage();audio.fx('click')});
+$('garageBlue').onclick=()=>{if(garageContext==='flappy')return;garageTeam=0;updateGarage()};$('garageOrange').onclick=()=>{if(garageContext==='flappy')return;garageTeam=1;updateGarage()};
+function backFromGarage(){
+ if(garageReturn==='modes'){openGameModes();return}
+ if(garageReturn==='flappy'){
+  gameType='flappy';state=flappyReturnState==='flappyOver'?'flappyOver':'flappyReady';
+  setArcadeHelp(true);updateFlappyPanel(state==='flappyOver');showScreen('flappy');return;
+ }
+ showMenu();
+}
+$('menuGarage').onclick=()=>{selectedGameType='soccer';openGarage(0)};
+$('garageBack').onclick=backFromGarage;
+$('garagePlay').onclick=()=>{if(garageContext==='flappy'){startFlappy();return}start()};
+
+function matchLengthMinutes(){return clamp(Number($('matchLength').value)||2,1,5)}
+function updateMatchLength(){
+ const minutes=matchLengthMinutes();
+ const label=minutes+' minute'+(minutes===1?'':'s');
+ $('matchLengthValue').textContent=label;
+ $('matchLength').setAttribute('aria-valuetext',label);
+ $('soccerModeSummary').textContent=minutes+'-minute matches · solo or local 2-player';
+ if(selectedGameType==='soccer')$('modesDescription').textContent='Score goals in a '+minutes+'-minute match.';
+}
+$('matchLength').addEventListener('input',updateMatchLength);
+$('matchLength').addEventListener('change',updateMatchLength);
+function impossibleMode(){return mode==='solo'&&difficulty==='impossible'}
+function isFreeplay(){return mode==='freeplay'&&gameType==='soccer'}
+function updateImpossibleTip(){$('impossibleTip').hidden=mode!=='solo'||$('difficulty').value!=='impossible'}
+$('difficulty').addEventListener('change',updateImpossibleTip);
+function chooseMode(m){mode=m;const solo=m==='solo';$('soloMode').classList.toggle('selected',solo);$('duoMode').classList.toggle('selected',!solo);$('soloMode').setAttribute('aria-pressed',String(solo));$('duoMode').setAttribute('aria-pressed',String(!solo));$('difficulty').disabled=!solo;$('difficulty').parentElement.style.opacity=solo?1:.5;updateImpossibleTip()}
+function start(fromNetwork=false){releaseMouseDrive();if(online.connected&&online.role==='guest'&&!fromNetwork)return;
+ // A local match must use the local mode selected on the menu.
+ // After online play, mode used to remain 'online' and freeze all solo bots.
+ if(!fromNetwork && !online.active && mode==='online')chooseMode($('duoMode').classList.contains('selected')?'duo':'solo');
+ if(selectedGameType==='flappy'){startFlappy();return}if(!fromNetwork&&selectedGameType==='freeplay')mode='freeplay';gameType='soccer';setArcadeHelp(false);difficulty=$('difficulty').value;duration=isFreeplay()?Infinity:matchLengthMinutes()*60;time=duration;score=[0,0];demos=[0,0];impossibleSaves=0;lastImpossibleSave=-10;goalDelay=0;resetRound();keys=Object.create(null);state='play';showScreen(null);clearNotice();$('matchLabel').textContent=isFreeplay()?'FREEPLAY · UNLIMITED':('TOP-DOWN · '+(mode==='solo'?'1 PLAYER · '+profiles[difficulty].label:mode==='online'?'2 PLAYERS · ONLINE':'2 PLAYERS · LOCAL'));audio.ensure();audio.fx('click');lastFrame=performance.now()}
+function openSoccerSetup(){releaseMouseDrive();keys=Object.create(null);selectedGameType='soccer';gameType='soccer';if(mode==='online'||mode==='freeplay')chooseMode('solo');chooseGameType('soccer');state='menu';showScreen('setup')}
+function showMenu(){releaseMouseDrive();leaveOnline();keys=Object.create(null);state='menu';gameType='soccer';selectedGameType='soccer';$('gameShell').classList.remove('flappy-active');setArcadeHelp(false);clearNotice();showScreen('menu')}
+function pause(){releaseMouseDrive();if(online.connected&&online.role==='guest'){notice('ONLY THE HOST CAN PAUSE',1.3);return}if(state!=='play'&&state!=='flappyPlay')return;const wasFlappy=state==='flappyPlay';keys=Object.create(null);state=wasFlappy?'flappyPaused':'paused';$('pauseScreen').querySelector('p').textContent=wasFlappy?'Your flight is paused. Press Resume to continue dodging obstacles.':'Take a break — the match clock and cars are stopped.';showScreen('pause')}
+function resume(){if(online.connected&&online.role==='guest')return;if(state!=='paused'&&state!=='flappyPaused')return;const wasFlappy=state==='flappyPaused';keys=Object.create(null);state=wasFlappy?'flappyPlay':'play';showScreen(null);lastFrame=performance.now();audio.ensure()}
+function openSettings(){cancelBind();setBindFeedback('Click a key, then press its replacement.');if(online.connected&&online.role==='guest'&&['play','goal','paused'].includes(state)){notice('AUDIO SETTINGS ARE AVAILABLE FROM THE MAIN MENU',1.8);return}settingsReturn=state==='flappyPlay'||state==='flappyPaused'?'flappyPause':state==='flappyReady'||state==='flappyOver'?'flappy':!screens.modes.hidden?'modes':!screens.setup.hidden?'setup':state==='play'||state==='paused'?'pause':state==='over'?'end':'menu';if(state==='play')state='paused';if(state==='flappyPlay')state='flappyPaused';keys=Object.create(null);showScreen('settings')}
+function closeSettings(){cancelBind();if(settingsReturn==='flappyPause'){state='flappyPaused';showScreen('pause')}else if(settingsReturn==='flappy'){showScreen('flappy')}else if(settingsReturn==='modes'){state='menu';showScreen('modes')}else if(settingsReturn==='setup'){state='menu';showScreen('setup')}else if(settingsReturn==='pause'){state='paused';showScreen('pause')}else if(settingsReturn==='end'){state='over';showScreen('end')}else{state='menu';showScreen('menu')}}
+function clearNotice(){noticeTime=0;const el=$('notice');el.classList.remove('show','goal');el.style.removeProperty('--notice-accent');el.style.removeProperty('--notice-color')}
+function notice(message,delay,kind='toast',accent='#8ceaff'){const el=$('notice');el.textContent=message;el.classList.remove('show');el.classList.toggle('goal',kind==='goal');el.style.setProperty('--notice-accent',accent||'#8ceaff');el.style.setProperty('--notice-color',kind==='goal'?(accent||'#8ceaff'):'#f4fbff');void el.offsetWidth;el.classList.add('show');noticeTime=delay}
+function finish(){releaseMouseDrive();state='over';keys=Object.create(null);clearNotice();$('endTitle').textContent=score[0]===score[1]?'IT’S A DRAW!':score[0]>score[1]?'BLUE WINS!':'ORANGE WINS!';$('endResult').textContent='Final score · Blue '+score[0]+' — '+score[1]+' Orange · Demolitions: Blue '+demos[0]+' / Orange '+demos[1];showScreen('end')}
+function goalScored(team){if(state!=='play')return;if(team===0&&impossibleMode()){impossibleSave();return}if(isFreeplay())score[0]++;else score[team]++;state='goal';goalDelay=isFreeplay()?1.65:2.1;const goalColor=isFreeplay()?blue.color:(ball.lastTouchTeam===team&&ball.lastTouchColor?ball.lastTouchColor:(team===0?blue.color:orange.color));notice('GOAL!',isFreeplay()?1.4:1.8,'goal',goalColor);burst(ball.x,ball.y,goalColor,95,450);cameraShake=16;audio.fx('goal')}
+$('soloMode').onclick=()=>chooseMode('solo');$('duoMode').onclick=()=>chooseMode('duo');$('playButton').onclick=()=>{selectedGameType='soccer';start()};$('rematchButton').onclick=()=>start();$('menuButton').onclick=showMenu;$('pauseMenu').onclick=showMenu;$('endMenu').onclick=showMenu;$('settingsButton').onclick=openSettings;$('menuSettings').onclick=openSettings;$('pauseSettings').onclick=openSettings;$('settingsBack').onclick=closeSettings;$('resumeButton').onclick=resume;
+$('headerModes').onclick=openGameModes;$('menuModes').onclick=openGameModes;$('modesBack').onclick=showMenu;$('soccerBack').onclick=openGameModes;$('selectSoccer').onclick=()=>chooseGameType('soccer');$('selectFreeplay').onclick=()=>chooseGameType('freeplay');$('selectFlappy').onclick=()=>chooseGameType('flappy');$('startModeButton').onclick=()=>{if(selectedGameType==='soccer')openSoccerSetup();else start()};$('modesGarage').onclick=()=>openGarage(0,'modes');$('flappyStart').onclick=startFlappyRun;$('flappyModes').onclick=openGameModes;$('flappyCustomize').onclick=()=>openGarage(0,'flappy');
+
+// Every car soccer action can be remapped, including boost and drift.
+// P1's default boost accepts both shift keys until it is customized.
+const defaultBinds=[
+ {up:'KeyW',down:'KeyS',left:'KeyA',right:'KeyD',boost:['ShiftLeft','ShiftRight'],drift:'Space'},
+ {up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight',boost:'KeyM',drift:'KeyN'}
+];
+const p1=structuredClone(defaultBinds[0]),p2=structuredClone(defaultBinds[1]);
+const bindProfiles=[p1,p2],bindActions=[['up','Up'],['down','Down'],['left','Left'],['right','Right'],['boost','Boost'],['drift','Drift']];
+const bindCodeList=value=>Array.isArray(value)?value:[value];
+const bindCodeAllowed=code=>/^(Key[A-Z]|Digit[0-9]|Arrow(Up|Down|Left|Right)|Shift(Left|Right)|Space|Comma|Period|Slash|Semicolon|Quote|Bracket(Left|Right)|Minus|Equal|Backquote)$/.test(code)&&code!=='KeyP';
+function keyName(value){
+ if(Array.isArray(value))return value.join('|')==='ShiftLeft|ShiftRight'?'Shift (either)':value.map(keyName).join(' / ');
+ const names={Space:'Space',ShiftLeft:'L Shift',ShiftRight:'R Shift',ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',Comma:',',Period:'.',Slash:'/',Semicolon:';',Quote:"'",BracketLeft:'[',BracketRight:']',Minus:'-',Equal:'=',Backquote:'`'};
+ return names[value]||value.replace(/^Key/,'').replace(/^Digit/,'');
+}
+function saveKeybinds(){try{localStorage.setItem('rocketRivalsKeybinds',JSON.stringify(bindProfiles))}catch(e){}}
+function activeBindOwner(code,exceptProfile=null,exceptAction=null){
+ for(let i=0;i<2;i++)for(const [action] of bindActions){
+  if(i===exceptProfile&&action===exceptAction)continue;
+  if(bindCodeList(bindProfiles[i][action]).includes(code))return 'Player '+(i+1)+' '+action;
+ }
+ return null;
+}
+// A malformed or stale saved configuration falls back to safe defaults.
+try{
+ const stored=JSON.parse(localStorage.getItem('rocketRivalsKeybinds')||'null');
+ if(Array.isArray(stored)&&stored.length===2){
+  const proposed=stored.map(item=>bindActions.map(([a])=>item?.[a]));
+  const list=proposed.flatMap(row=>row.flatMap(bindCodeList));
+  if(list.every(bindCodeAllowed)&&new Set(list).size===list.length)
+    for(let i=0;i<2;i++)bindActions.forEach(([action],j)=>{bindProfiles[i][action]=proposed[i][j]});
+ }
+}catch(e){}
+let pendingBind=null;
+function setBindFeedback(message,error=false){const el=$('bindFeedback');el.textContent=message;el.classList.toggle('error',error)}
+function cancelBind(){pendingBind=null;renderKeybindButtons()}
+function renderKeybindButtons(){
+ for(const button of document.querySelectorAll('.bind-key')){
+  const i=Number(button.dataset.player),action=button.dataset.action;
+  const waiting=!!pendingBind&&pendingBind.player===i&&pendingBind.action===action;
+  button.classList.toggle('listening',waiting);button.textContent=waiting?'Press key…':keyName(bindProfiles[i][action]);
+  button.setAttribute('aria-label',`Player ${i+1} ${action}: ${waiting?'press a key':keyName(bindProfiles[i][action])}`);
+  button.setAttribute('aria-pressed',String(waiting));
+ }
+}
+for(let i=0;i<2;i++){
+ const team=document.createElement('div');team.className='keybind-team'+(i?' orange':'');
+ const title=document.createElement('h3');title.textContent=(i?'🟠 Orange':'🔵 Blue')+' · Player '+(i+1);team.appendChild(title);
+ for(const [action,label] of bindActions){
+  const row=document.createElement('div');row.className='bind-row';
+  const text=document.createElement('span');text.textContent=label;
+  const button=document.createElement('button');button.type='button';button.className='bind-key';button.dataset.player=i;button.dataset.action=action;
+  button.addEventListener('click',()=>{keys=Object.create(null);pendingBind={player:i,action};renderKeybindButtons();setBindFeedback('Press a key for Player '+(i+1)+' '+label+'. Esc cancels.');});
+  row.append(text,button);team.appendChild(row);
+ }
+ $('keybindGrids').appendChild(team);
+}
+renderKeybindButtons();
+$('resetKeybinds').addEventListener('click',()=>{
+ for(let i=0;i<2;i++)for(const [action] of bindActions)bindProfiles[i][action]=structuredClone(defaultBinds[i][action]);
+ keys=Object.create(null);cancelBind();saveKeybinds();refreshControlHelp();setBindFeedback('Default controls restored for both players.');
+});
+// Capture before game shortcuts, so rebinding W/P1 or arrow keys never moves a car.
+document.addEventListener('keydown',e=>{
+ if(!pendingBind)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(e.code==='Escape'){cancelBind();setBindFeedback('Change cancelled.');return}
+ if(e.repeat)return;
+ if(!bindCodeAllowed(e.code)){setBindFeedback('That key is reserved or unsupported. Choose a letter, number, arrow or Shift.',true);return}
+ const {player,action}=pendingBind,used=activeBindOwner(e.code,player,action);
+ if(used){setBindFeedback(keyName(e.code)+' is already used by '+used+'. Choose another key.',true);return}
+ bindProfiles[player][action]=e.code;keys=Object.create(null);cancelBind();saveKeybinds();refreshControlHelp();
+ setBindFeedback('Player '+(player+1)+' '+action+' is now '+keyName(e.code)+'.');
+},true);
+
+// The pointer allows precise, continuous 360-degree movement; WASD remains
+// screen-relative for players who prefer keyboard controls.
+const mouseDrive={active:false,pointerId:null,x:0,y:0};
+function releaseMouseDrive(){mouseDrive.active=false;mouseDrive.pointerId=null}
+function mouseWorldPosition(e){
+ const bounds=canvas.getBoundingClientRect();
+ return {x:clamp((e.clientX-bounds.left)*W/bounds.width,0,W),y:clamp((e.clientY-bounds.top)*H/bounds.height,0,H)};
+}
+function updateMousePosition(e){const p=mouseWorldPosition(e);mouseDrive.x=p.x;mouseDrive.y=p.y}
+function playerOneCar(){return online.connected&&online.started?(online.playerCars[online.id]||blue):blue}
+const isDown=k=>Array.isArray(k)?k.some(code=>keys[code]):!!keys[k];
+// Keyboard = screen-relative directions, interpolated with smooth steering.
+// Holding LMB/touch on the field lets P1 aim at ANY angle (not just 8).
+function controlFromKeys(profile){
+ let moveX=(isDown(profile.right)?1:0)-(isDown(profile.left)?1:0);
+ let moveY=(isDown(profile.down)?1:0)-(isDown(profile.up)?1:0);
+ if(profile===p1 && state==='play' && mouseDrive.active){
+  const car=playerOneCar();
+  const dx=mouseDrive.x-car.x,dy=mouseDrive.y-car.y;
+  const distance=Math.hypot(dx,dy);
+  const strength=clamp((distance-10)/85,0,1);
+  moveX=distance>0?dx/distance*strength:0;
+  moveY=distance>0?dy/distance*strength:0;
+ }
+ return{moveX,moveY,boost:isDown(profile.boost),drift:isDown(profile.drift)};
+}
+window.addEventListener('keydown',e=>{if(state==='play'&&gameType==='soccer'&&!e.repeat&&e.code==='KeyE'&&canLocalUseRpg()){e.preventDefault();requestRpgShot()}if((state==='play'||state==='flappyPlay')&&(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight'].includes(e.code)||bindProfiles.some(profile=>bindActions.some(([a])=>bindCodeList(profile[a]).includes(e.code)))))e.preventDefault();if(state==='flappyPlay'&&['Space','KeyW','ArrowUp'].includes(e.code)&&!e.repeat){e.preventDefault();flapCar()} if((e.code==='Escape'||e.code==='KeyP')&&!e.repeat){if(!screens.settings.hidden){closeSettings();return}if(state==='play'||state==='flappyPlay')pause();else if(state==='paused'||state==='flappyPaused')resume();return}keys[e.code]=true});
+window.addEventListener('keyup',e=>{keys[e.code]=false});window.addEventListener('blur',()=>{keys=Object.create(null);releaseMouseDrive();if((state==='play'||state==='flappyPlay')&&!(online.connected&&online.role==='guest'))pause()});
+canvas.addEventListener('pointerdown',e=>{
+ if(state==='flappyPlay'){e.preventDefault();flapCar();return}
+ if(state!=='play'||e.button!==0)return;
+ e.preventDefault();updateMousePosition(e);
+ mouseDrive.active=true;mouseDrive.pointerId=e.pointerId;
+ try{canvas.setPointerCapture(e.pointerId)}catch(err){}
+});
+canvas.addEventListener('pointermove',e=>{
+ if(mouseDrive.active&&e.pointerId===mouseDrive.pointerId)updateMousePosition(e);
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture']){
+ canvas.addEventListener(type,e=>{if(e.pointerId===mouseDrive.pointerId)releaseMouseDrive()});
+}
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+for(const button of document.querySelectorAll('[data-key]')){
+ const action=Object.entries(defaultBinds[0]).find(([,key])=>bindCodeList(key).includes(button.dataset.key))?.[0];
+ let pressedCode=null;
+ button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);pressedCode=bindCodeList(p1[action])[0];keys[pressedCode]=true;button.classList.add('pressed')});
+ const off=()=>{if(pressedCode){keys[pressedCode]=false;pressedCode=null}button.classList.remove('pressed')};
+ button.addEventListener('pointerup',off);button.addEventListener('pointercancel',off);button.addEventListener('lostpointercapture',off);button.addEventListener('contextmenu',e=>e.preventDefault());
+}
+
+function burst(x,y,color,n=12,power=170){for(let i=0;i<n;i++){const a=rand(0,TAU),speed=rand(power*.18,power),life=rand(.23,.75);particles.push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life,max:life,size:rand(2,6),color})}}
+function particle(x,y,vx,vy,color,life=.25,size=3){particles.push({x,y,vx,vy,color,life,max:life,size})}
+// Local two-player limits the RPG to the Blue car (Player 1).
+// Online, every player can independently unlock/equip it, regardless of team or slot.
+function canLocalUseRpg(){
+ if(!devUnlocked||!devRpgEnabled||gameType!=='soccer'||state!=='play')return false;
+ return mode!=='online'||(online.connected&&online.started&&!!online.playerCars[online.id]);
+}
+function requestRpgShot(){
+ if(!canLocalUseRpg())return;
+ if(mode==='online'&&online.connected&&online.started){
+  if(online.role==='guest'){
+   online.fireSeq=(online.fireSeq+1)%1000000000;
+   return;
+  }
+  fireRocket(online.playerCars[online.id]);
+ }else fireRocket(blue);
+}
+function fireRocket(car){
+ if(!car||(mode!=='online'&&car!==blue)||car.demolished||car.rpgCooldown>0||state!=='play')return false;
+ car.rpgCooldown=RPG_COOLDOWN;
+ const a=car.angle,dx=Math.cos(a),dy=Math.sin(a);
+ rockets.push({x:car.x+dx*(car.bodyLength*.55+11),y:car.y+dy*(car.bodyLength*.55+11),vx:dx*RPG_SPEED+car.vx*.15,vy:dy*RPG_SPEED+car.vy*.15,angle:a,life:RPG_LIFETIME,team:car.team,ownerId:car.ownerId||'',color:car.color});
+ // Distinct gentle arcade effect, not a real weapon sound.
+ audio.fx('hit');burst(car.x+dx*car.bodyLength*.6,car.y+dy*car.bodyLength*.6,'#ffe4a3',6,105);
+ return true;
+}
+function rocketTouchesCar(r,c){
+ const polygon=worldCarShape(c);
+ let inside=false;
+ for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+  const a=polygon[i],b=polygon[j];
+  if(((a[1]>r.y)!==(b[1]>r.y)) && r.x<(b[0]-a[0])*(r.y-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+ }
+ if(inside)return true;
+ for(let i=0;i<polygon.length;i++){
+  const a=polygon[i],b=polygon[(i+1)%polygon.length],dx=b[0]-a[0],dy=b[1]-a[1];
+  const t=clamp(((r.x-a[0])*dx+(r.y-a[1])*dy)/(dx*dx+dy*dy||1),0,1);
+  if((r.x-a[0]-t*dx)**2+(r.y-a[1]-t*dy)**2<121)return true;
+ }
+ return false;
+}
+function rocketImpact(r,hitCar){
+ burst(r.x,r.y,hitCar?'#ffb747':'#ffc769',25,240);
+ burst(r.x,r.y,r.color,12,170);
+ cameraShake=Math.max(cameraShake,hitCar?10:4);
+ if(hitCar){
+  const attacker=soccerCars().find(c=>c.ownerId===r.ownerId&&r.ownerId)||soccerCars().find(c=>c.team===r.team&&!c.bot);
+  if(attacker&&!hitCar.demolished&&hitCar.spawnShield<=0&&!(impossibleMode()&&hitCar===orange))demolishCar(hitCar,attacker);
+ }else audio.fx('hit');
+}
+function moveRockets(dt){
+ for(const car of soccerCars())car.rpgCooldown=Math.max(0,(car.rpgCooldown||0)-dt);
+ for(let i=rockets.length-1;i>=0;i--){
+  const r=rockets[i];r.x+=r.vx*dt;r.y+=r.vy*dt;r.life-=dt;
+  if(Math.random()<.55)particle(r.x-r.vx*.015,r.y-r.vy*.015,rand(-50,50),rand(-50,50),'#ffa840',.18,rand(2,5));
+  const mouth=r.y>GOAL.top&&r.y<GOAL.bottom;
+  const wall=r.y<FIELD.top+7||r.y>FIELD.bottom-7||r.x<FIELD.left+7&&(!mouth||r.x<FIELD.left-GOAL.depth+7)||r.x>FIELD.right-7&&(!mouth||r.x>FIELD.right+GOAL.depth-7);
+  const target=soccerCars().find(c=>!c.demolished&&c.team!==r.team&&rocketTouchesCar(r,c));
+  if(target||wall){rocketImpact(r,target);rockets.splice(i,1)}
+  else if(r.life<=0||r.x<0||r.x>W||r.y<0||r.y>H)rockets.splice(i,1);
+ }
+}
+function drawRockets(){
+ for(const r of rockets){
+  g.save();g.translate(r.x,r.y);g.rotate(r.angle);
+  g.shadowColor='#ffbe65';g.shadowBlur=14;g.fillStyle='#ffeab8';
+  g.beginPath();g.moveTo(12,0);g.lineTo(1,-5.5);g.lineTo(-11,-5.5);g.lineTo(-11,5.5);g.lineTo(1,5.5);g.closePath();g.fill();
+  g.fillStyle=r.color;g.fillRect(-8,-3,11,6);
+  g.shadowBlur=0;g.fillStyle='#ff9639';g.beginPath();g.moveTo(-11,-4);g.lineTo(-24,0);g.lineTo(-11,4);g.closePath();g.fill();g.restore();
+ }
+}
+
+// A demolition only triggers on a fast, forward-facing impact. It never changes the score.
+function demolitionHit(attacker,victim,nx,ny){
+ if(attacker.demolished||victim.demolished||victim.spawnShield>0)return false;
+ // Impossible bot cannot be removed from goalkeeping duty by a demolition.
+ if(impossibleMode()&&victim===orange)return false;
+ const speed=Math.hypot(attacker.vx,attacker.vy);
+ const facing=Math.cos(attacker.angle)*nx+Math.sin(attacker.angle)*ny;
+ const closing=(attacker.vx-victim.vx)*nx+(attacker.vy-victim.vy)*ny;
+ return speed>=DEMO_SPEED&&facing>.70&&closing>225;
+}
+function demolishCar(victim,attacker){
+ if(victim.demolished||victim.spawnShield>0)return;
+ victim.demolished=true;victim.respawnTimer=DEMO_RESPAWN;
+ victim.vx=0;victim.vy=0;victim.boosting=false;victim.boost=0;
+ victim.aiControl={gas:0,steer:0,boost:false,drift:false};
+ demos[attacker.team]++;
+ const x=victim.x,y=victim.y;
+ demoFx.push({x,y,life:.72,max:.72,color:victim.color});
+ burst(x,y,'#ffca52',28,400);burst(x,y,'#ffffff',19,320);burst(x,y,victim.color,27,450);
+ cameraShake=Math.max(cameraShake,16);
+ audio.fx('demo');
+ notice((attacker.team===0?'BLUE':'ORANGE')+' DEMOLITION!',1.05);
+}
+function respawnCar(c){
+ // Select a safe location in the car's own half, away from the ball and other car.
+ const team=c.team,home=team===0?330:870;
+ const options=[[home,MID_Y],[home,FIELD.top+120],[home,FIELD.bottom-120],[team===0?230:970,MID_Y]];
+ const others=soccerCars().filter(other=>other!==c&&!other.demolished);
+ let best=options[0],bestScore=-Infinity;
+ for(const pos of options){
+  const fromBall=Math.hypot(pos[0]-ball.x,pos[1]-ball.y);
+  const fromRival=others.length?Math.min(...others.map(other=>Math.hypot(pos[0]-other.x,pos[1]-other.y))):999;
+  const safety=Math.min(fromBall,fromRival);
+  if(safety>bestScore){bestScore=safety;best=pos}
+ }
+ c.x=best[0];c.y=best[1];c.angle=team===0?0:Math.PI;
+ c.vx=c.vy=0;c.boost=START_BOOST;c.demolished=false;c.respawnTimer=0;c.spawnShield=SPAWN_SHIELD;
+ c.aiTimer=0;c.attackPhase='setup';c.attackCooldown=0;c.route=false;c.boosting=false;c.drifting=false;
+ c.aiControl={gas:0,steer:0,boost:false,drift:false};
+ burst(c.x,c.y,c.color,22,170);audio.fx('pad');
+}
+function tickRespawn(c,dt){
+ if(c.demolished){c.respawnTimer=Math.max(0,c.respawnTimer-dt);if(c.respawnTimer<=0)respawnCar(c)}
+ else c.spawnShield=Math.max(0,c.spawnShield-dt);
+}
+
+// On IMPOSSIBLE, the orange bot predicts where the ball will reach its goal,
+// prioritizes defense, and uses directional controls to intercept incoming shots.
+// A final emergency save below guarantees no conceded goals even against ricochets.
+function predictGoalY(x){
+ const travel=ball.vx>8?clamp((x-ball.x)/ball.vx,0,1.2):0;
+ const hi=FIELD.top+ball.r,lo=FIELD.bottom-ball.r,span=lo-hi;
+ let y=(ball.y+ball.vy*travel-hi)%(2*span);
+ if(y<0)y+=2*span;
+ return hi+(y>span?2*span-y:y);
+}
+function thinkImpossible(c){
+ // OFFENSE: approach the ball from behind (to its right), then dash THROUGH it
+ // toward the blue goal. The bot must get an actual physical touch to shoot.
+ // DEFENSE: intercept dangerous balls on the orange end, backed by its save power.
+ const danger=(ball.x>880 && ball.vx>55) || (ball.x>1005 && ball.vx>0);
+ const closingShot=ball.x>870 && ball.vx>180;
+ let tx,ty;
+ if(danger || closingShot){
+  c.attackPhase='setup';
+  // Move between the ball and the orange goal; emergency save still covers ricochets.
+  const guardX=clamp(Math.max(ball.x+58,FIELD.right-100),FIELD.right-140,FIELD.right+20);
+  tx=guardX;ty=clamp(predictGoalY(tx),GOAL.top+29,GOAL.bottom-29);
+  if(Math.hypot(c.x-tx,c.y-ty)<66){tx=ball.x-43;ty=ball.y}
+ }else{
+  // Project forward, but avoid huge overshoots on rapidly travelling balls.
+  const lead=clamp(Math.hypot(ball.vx,ball.vy)/920,0,.22);
+  const px=clamp(ball.x+ball.vx*lead,FIELD.left+45,FIELD.right-55);
+  const py=clamp(ball.y+ball.vy*lead,FIELD.top+25,FIELD.bottom-25);
+  // Shot is directed toward the blue goal, rather than orange's own net.
+  const aimY=clamp(blue.demolished?MID_Y:(blue.y<MID_Y?GOAL.bottom-35:GOAL.top+35),GOAL.top+30,GOAL.bottom-30);
+  const dx=FIELD.left-44-px,dy=aimY-py,mag=Math.hypot(dx,dy)||1;
+  const ux=dx/mag,uy=dy/mag;
+  const behind=ball.r+c.bodyLength*.5+20;
+  const sx=clamp(px-ux*behind,FIELD.left+55,FIELD.right+GOAL.depth-33);
+  const sy=clamp(py-uy*behind,FIELD.top+38,FIELD.bottom-38);
+  if(c.attackPhase!=='strike'){
+   // Get clearly past the ball, on the opponent's side of its trajectory.
+   tx=sx;ty=sy;
+   const correctlyBehind=c.x>ball.x+ball.r+c.bodyLength*.22;
+   const aligned=Math.abs(c.y-sy)<45 && Math.hypot(c.x-sx,c.y-sy)<70;
+   if(correctlyBehind&&aligned)c.attackPhase='strike';
+  }
+  if(c.attackPhase==='strike'){
+   // Keep running left across the ball's center for a powerful, aimed hit.
+   tx=clamp(px+ux*160,FIELD.left-40,FIELD.right-45);
+   ty=clamp(py+uy*160,FIELD.top+30,FIELD.bottom-30);
+   if(c.x<ball.x-75 || c.x<FIELD.left+38 || Math.abs(c.y-ball.y)>185)c.attackPhase='setup';
+  }
+ }
+ const dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy),mag=Math.max(1,d);
+ const sprint=(c.attackPhase==='strike' && !danger) || d>155;
+ c.aiControl={moveX:d>9?dx/mag:0,moveY:d>9?dy/mag:0,boost:sprint&&c.boost>2,drift:d<100};
+}
+// A guaranteed last-chance goalkeeper save. It is intentionally an arcade
+// superpower, only in Impossible solo games, not a normal bot physics feature.
+function impossibleSave(){
+ if(!impossibleMode()||state!=='play')return false;
+ const y=clamp(ball.y,GOAL.top+ball.r+9,GOAL.bottom-ball.r-9);
+ // Place the keeper just inside its goal so the save is visually credited to it.
+ orange.demolished=false;orange.respawnTimer=0;orange.x=FIELD.right+2;
+ orange.y=y;orange.angle=Math.PI;orange.vx=-160;orange.vy=0;
+ orange.boosting=false;orange.aiTimer=0;
+ ball.x=Math.min(ball.x,FIELD.right-34);ball.y=y;
+ ball.vx=-Math.max(540,Math.abs(ball.vx)*.9);
+ ball.vy=clamp((MID_Y-y)*.72,-190,190);
+ if(worldTime-lastImpossibleSave>.26){
+  impossibleSaves++;
+  lastImpossibleSave=worldTime;
+  burst(FIELD.right-29,y,'#ffdf88',29,260);
+  burst(FIELD.right-29,y,orange.color,12,195);
+  cameraShake=Math.max(cameraShake,7);
+  audio.fx('hit');notice('☠ IMPOSSIBLE SAVE!',.95);
+ }
+ return true;
+}
+// Bot drives the ORANGE car. Its opponent is always the BLUE (left) goal.
+// It takes a path around the ball to get BEHIND it (on the right), then strikes to the left.
+function thinkBot(c,dt){if(c.demolished)return;if(impossibleMode()){thinkImpossible(c);return}const p=profiles[difficulty];c.aiTimer-=dt;if(c.aiTimer>0)return;c.aiTimer=p.think;
+ const projected={x:clamp(ball.x+ball.vx*p.lead,FIELD.left+30,FIELD.right-30),y:clamp(ball.y+ball.vy*p.lead,FIELD.top+30,FIELD.bottom-30)};
+ // If the ball is behind us, choose a side lane to go around without bumping it toward our goal.
+ if(projected.x>c.x+22&&!c.route){c.route=true;c.routeSide=(c.y<=projected.y?-1:1)}
+ if(c.route && c.x>projected.x+76){c.route=false}
+ let tx,ty;
+ if(c.route){
+   const lane=clamp(projected.y+c.routeSide*114,FIELD.top+45,FIELD.bottom-45);
+   if(Math.abs(c.y-lane)>32){tx=clamp(c.x+6,FIELD.left+48,FIELD.right-39);ty=lane}
+   else {tx=clamp(projected.x+105,FIELD.left+48,FIELD.right-38);ty=lane}
+ }else{
+   // Aim for left goal; contact point lies on orange goal-side of the moving ball.
+   const shotY=clamp(MID_Y+(projected.y-MID_Y)*.18,GOAL.top+32,GOAL.bottom-32);
+   const dx=FIELD.left-projected.x,dy=shotY-projected.y,m=Math.hypot(dx,dy)||1;
+   tx=projected.x-dx/m*(c.bodyLength*.5+ball.r+8);
+   ty=projected.y-dy/m*(c.bodyLength*.5+ball.r+8);
+   // Move into ball once the bumper is aligned with it.
+   if(Math.hypot(tx-c.x,ty-c.y)<50){tx=projected.x;ty=projected.y}
+ }
+ const err=p.error;tx=clamp(tx+Math.sin(worldTime*1.55)*err*.38,FIELD.left+38,FIELD.right-35);ty=clamp(ty+Math.sin(worldTime*.94+1.6)*err*.27,FIELD.top+38,FIELD.bottom-38);
+ let targetAngle=Math.atan2(ty-c.y,tx-c.x),d=angleDiff(targetAngle,c.angle),distance=Math.hypot(tx-c.x,ty-c.y);
+ let gas=1;
+ // Reverse only when the target is directly behind the car and nearby.
+ if(Math.abs(d)>2.42&&distance<150){gas=-.65;d=angleDiff(targetAngle,c.angle+Math.PI)}
+ const steer=clamp(d*2.0,-1,1)*(gas<0?-1:1);
+ if(Math.abs(d)>1.2&&gas>0)gas=.58;
+ if(distance<55)gas*=clamp(distance/60,.25,1);
+ const shouldBoost=!c.route&&gas>.75&&Math.abs(d)<.30&&distance>110&&c.boost>20&&Math.random()<p.boost;
+ c.aiControl={gas:gas*p.speed,steer:steer*clamp(p.turn/2.55,.57,1.15),boost:shouldBoost,drift:Math.abs(d)>1.15};
+ // Extra safety: if facing toward its OWN (right) net beside the ball, avoid boosting into it.
+ if(c.x<ball.x+35&&c.x>FIELD.right-245)c.aiControl.boost=false;
+}
+// Body outlines are also the real convex collision polygons. X+ is the nose.
+function localCarShape(c){
+ const L=c.bodyLength,B=c.bodyWidth;
+ if(c.bodyId==='wedge')return [[-L/2,-B/2],[L*.06,-B/2],[L/2,-B*.105],[L/2,B*.105],[L*.06,B/2],[-L/2,B/2]];
+ return [[-L/2,-B/2],[L/2,-B/2],[L/2,B/2],[-L/2,B/2]];
+}
+function worldCarShape(c){const ca=Math.cos(c.angle),sa=Math.sin(c.angle);return localCarShape(c).map(([x,y])=>[c.x+x*ca-y*sa,c.y+x*sa+y*ca])}
+function tracePolygon(ctx,points){ctx.beginPath();for(let i=0;i<points.length;i++){const [x,y]=points[i];if(!i)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.closePath()}
+// The playable arena is the union of the pitch and two recessed goal boxes.
+// Use the actual rotated car polygon rather than an approximate circular collider.
+function resolveCarWall(c){
+ const bounds=()=>{const p=worldCarShape(c);return{
+  minX:Math.min(...p.map(v=>v[0])),maxX:Math.max(...p.map(v=>v[0])),
+  minY:Math.min(...p.map(v=>v[1])),maxY:Math.max(...p.map(v=>v[1]))
+ }};
+ let b=bounds();
+ // Standard sidelines always stop cars.
+ if(b.minY<FIELD.top){c.y+=FIELD.top-b.minY;c.vy=Math.max(0,c.vy)*.4}
+ if(b.maxY>FIELD.bottom){c.y-=b.maxY-FIELD.bottom;c.vy=Math.min(0,c.vy)*.4}
+ b=bounds();
+ const mouthTop=GOAL.top+5,mouthBottom=GOAL.bottom-5;
+ // Only an entire car that fits through the mouth can pass the goalposts.
+ // Once the car's center is behind the goal line, the net's roof and floor
+ // constrain it, so it can turn around and drive back out without teleporting.
+ if(b.minX<FIELD.left){
+  if(c.x<FIELD.left){
+   if(b.minY<mouthTop){c.y+=mouthTop-b.minY;c.vy=Math.max(0,c.vy)*.4}
+   if(b.maxY>mouthBottom){c.y-=b.maxY-mouthBottom;c.vy=Math.min(0,c.vy)*.4}
+   b=bounds();
+  }else if(b.minY<mouthTop||b.maxY>mouthBottom){
+   c.x+=FIELD.left-b.minX;c.vx=Math.max(0,c.vx)*.4;b=bounds();
+  }
+  // Solid back wall of blue's net.
+  const back=FIELD.left-GOAL.depth+5;
+  if(b.minX<back){c.x+=back-b.minX;c.vx=Math.max(0,c.vx)*.4}
+ }
+ b=bounds();
+ if(b.maxX>FIELD.right){
+  if(c.x>FIELD.right){
+   if(b.minY<mouthTop){c.y+=mouthTop-b.minY;c.vy=Math.max(0,c.vy)*.4}
+   if(b.maxY>mouthBottom){c.y-=b.maxY-mouthBottom;c.vy=Math.min(0,c.vy)*.4}
+   b=bounds();
+  }else if(b.minY<mouthTop||b.maxY>mouthBottom){
+   c.x-=b.maxX-FIELD.right;c.vx=Math.min(0,c.vx)*.4;b=bounds();
+  }
+  // Solid back wall of orange's net.
+  const back=FIELD.right+GOAL.depth-5;
+  if(b.maxX>back){c.x-=b.maxX-back;c.vx=Math.min(0,c.vx)*.4}
+ }
+}
+function updateCar(c,dt,ctrl){
+ if(c.demolished)return;
+ const directional=typeof ctrl.moveX==='number';
+ let canBoost=!!ctrl.boost&&c.boost>0;
+ c.boosting=canBoost;c.drifting=!!ctrl.drift;
+ if(directional){
+  // W = screen up, S = down, A = left, D = right. Diagonals have normal speed.
+  const dx=clamp(ctrl.moveX,-1,1),dy=clamp(ctrl.moveY,-1,1),mag=Math.hypot(dx,dy);
+  if(mag>0){
+   const ux=dx/mag,uy=dy/mag;
+   // Rotate smoothly along the shortest arc (no snapping to 8 fixed headings).
+   // Mouse and online controls carry arbitrary normalized angles.
+   const targetAngle=Math.atan2(uy,ux);
+   c.angle+=angleDiff(targetAngle,c.angle)*(1-Math.exp(-16*dt));
+   const impossibleBot=c.bot&&impossibleMode();
+   const analogAmount=clamp(mag,0,1);
+   const targetSpeed=(impossibleBot?(canBoost?850:665):(canBoost?605:405))*analogAmount;
+   const response=1-Math.exp(-(c.drifting?4.1:11.5)*dt);
+   c.vx+=(ux*targetSpeed-c.vx)*response;
+   c.vy+=(uy*targetSpeed-c.vy)*response;
+  }else{
+   // Coasting when no direction key is held; Shift/M can still boost from rest.
+   const drag=Math.exp(-(canBoost?.72:5.3)*dt);
+   c.vx*=drag;c.vy*=drag;
+   if(canBoost){c.vx+=Math.cos(c.angle)*1250*dt;c.vy+=Math.sin(c.angle)*1250*dt}
+  }
+ }else{
+  // Computer opponent retains its smooth path-following driving AI.
+  const frontX=Math.cos(c.angle),frontY=Math.sin(c.angle);
+  const forward=c.vx*frontX+c.vy*frontY;
+  const steer=clamp(ctrl.steer,-1,1),gas=clamp(ctrl.gas,-1,1);
+  const steeringSpeed=clamp(Math.abs(forward)/110,.25,1);
+  c.angle+=steer*3.45*steeringSpeed*dt*(forward< -22?-1:1)*(ctrl.drift?1.35:1);
+  const ax=Math.cos(c.angle),ay=Math.sin(c.angle);
+  const accel=gas>=0?730:510;
+  c.vx+=ax*(gas*accel+(canBoost?1250:0))*dt;
+  c.vy+=ay*(gas*accel+(canBoost?1250:0))*dt;
+  const forwardSpeed=c.vx*ax+c.vy*ay,sideSpeed=-c.vx*ay+c.vy*ax;
+  const forwardDrag=Math.exp(-(Math.abs(gas)>.02?.55:1.63)*dt),sideDrag=Math.exp(-(c.drifting?2.8:10)*dt);
+  c.vx=ax*forwardSpeed*forwardDrag-ay*sideSpeed*sideDrag;
+  c.vy=ay*forwardSpeed*forwardDrag+ax*sideSpeed*sideDrag;
+ }
+ const ax=Math.cos(c.angle),ay=Math.sin(c.angle);
+ const maxSpeed=(c.bot&&impossibleMode())?(canBoost?890:700):(canBoost?640:420),v=Math.hypot(c.vx,c.vy);
+ if(v>maxSpeed){c.vx*=maxSpeed/v;c.vy*=maxSpeed/v}
+ if(canBoost){
+  c.boost=Math.max(0,c.boost-36*dt);
+  c.boostFxTimer-=dt;
+  if(c.boostFxTimer<=0){
+   c.boostFxTimer=.035;
+   const bx=c.x-ax*c.bodyLength*.5,by=c.y-ay*c.bodyLength*.5;
+   particle(bx+rand(-5,5),by+rand(-5,5),-ax*rand(120,220)+rand(-35,35),-ay*rand(120,220)+rand(-35,35),c.color,.25,rand(3,7));
+   if(Math.random()<.11)audio.fx('boost');
+  }
+ }else c.boostFxTimer=0; // No passive boost regeneration.
+ c.x+=c.vx*dt;c.y+=c.vy*dt;
+ resolveCarWall(c);
+ c.trailTimer-=dt;
+ if(Math.hypot(c.vx,c.vy)>195&&c.trailTimer<=0){c.trailTimer=.028;particle(c.x-ax*c.bodyLength*.42,c.y-ay*c.bodyLength*.42,-c.vx*.07,-c.vy*.07,c.color,.14,2)}
+}
+// SAT handles all combinations of rectangular and tapered convex hitboxes.
+function carOverlap(a,b){
+ const pa=worldCarShape(a),pb=worldCarShape(b);
+ let smallest=Infinity,nx=0,ny=0;
+ for(const polygon of [pa,pb])for(let i=0;i<polygon.length;i++){
+  const p=polygon[i],q=polygon[(i+1)%polygon.length],ex=q[0]-p[0],ey=q[1]-p[1];
+  const em=Math.hypot(ex,ey)||1,ux=-ey/em,uy=ex/em;
+  const projA=pa.map(v=>v[0]*ux+v[1]*uy),projB=pb.map(v=>v[0]*ux+v[1]*uy);
+  const aMin=Math.min(...projA),aMax=Math.max(...projA),bMin=Math.min(...projB),bMax=Math.max(...projB);
+  const depth=Math.min(aMax,bMax)-Math.max(aMin,bMin);
+  if(depth<=0)return null;
+  if(depth<smallest){smallest=depth;const centerDiff=bMin+bMax-aMin-aMax;const sign=centerDiff>=0?1:-1;nx=ux*sign;ny=uy*sign}
+ }
+ return{nx,ny,depth:smallest};
+}
+function collideCars(a,b){
+ if(a.demolished||b.demolished)return;
+ const hit=carOverlap(a,b);if(!hit)return;
+ const {nx,ny}=hit;
+ const aHits=demolitionHit(a,b,nx,ny),bHits=demolitionHit(b,a,-nx,-ny);
+ if(aHits||bHits){
+  if(aHits&&bHits){
+   const aSpeed=Math.hypot(a.vx,a.vy),bSpeed=Math.hypot(b.vx,b.vy);
+   if(Math.abs(aSpeed-bSpeed)<25){demolishCar(b,a);demolishCar(a,b)}
+   else if(aSpeed>bSpeed)demolishCar(b,a);
+   else demolishCar(a,b);
+  }else if(aHits)demolishCar(b,a);
+  else demolishCar(a,b);
+  return;
+ }
+ const push=hit.depth+.05;
+ a.x-=nx*push*.5;b.x+=nx*push*.5;a.y-=ny*push*.5;b.y+=ny*push*.5;
+ const v=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+ if(v<0){const j=-v*.68;a.vx-=nx*j;a.vy-=ny*j;b.vx+=nx*j;b.vy+=ny*j;
+  if(j>60)burst((a.x+b.x)/2,(a.y+b.y)/2,'#fff3c1',7,140)}
+}
+// Accurate circle-versus-convex-polygon contact, including wedge and Clown Car.
+// Unlike a circle approximation, the narrow Arrowhead nose and body widths matter.
+function carBallContact(c){
+ if(c.demolished)return null;
+ const points=worldCarShape(c);
+ let best=Infinity,cx=0,cy=0,outX=0,outY=0,inside=true;
+ for(let i=0;i<points.length;i++){
+  const [x1,y1]=points[i],[x2,y2]=points[(i+1)%points.length];
+  const ex=x2-x1,ey=y2-y1,edgeSq=ex*ex+ey*ey;
+  const t=clamp(((ball.x-x1)*ex+(ball.y-y1)*ey)/(edgeSq||1),0,1);
+  const px=x1+ex*t,py=y1+ey*t,dx=ball.x-px,dy=ball.y-py,dSq=dx*dx+dy*dy;
+  if(ex*(ball.y-y1)-ey*(ball.x-x1)<-.00001)inside=false;
+  if(dSq<best){best=dSq;cx=px;cy=py;const m=Math.sqrt(edgeSq)||1;outX=ey/m;outY=-ex/m}
+ }
+ const distance=Math.sqrt(best);
+ const penetration=inside?ball.r+distance:ball.r-distance;
+ let nx=outX,ny=outY;
+ if(!inside&&distance>1e-6){nx=(ball.x-cx)/distance;ny=(ball.y-cy)/distance}
+ return{nx,ny,penetration,inside,distance};
+}
+// Separate BOTH objects, not just the ball: otherwise a wall can shove the
+// ball straight back into the car, letting it visually pass through the bumper.
+function collideCarBall(c,showEffects=true){
+ const hit=carBallContact(c);
+ if(!hit||hit.penetration<=0)return null;
+ const {nx,ny}=hit,overlap=hit.penetration+.03;
+ const sourceVx=c.vx,sourceVy=c.vy;
+ const ballFraction=.70,carFraction=1-ballFraction;
+ ball.x+=nx*overlap*ballFraction;ball.y+=ny*overlap*ballFraction;
+ c.x-=nx*overlap*carFraction;c.y-=ny*overlap*carFraction;
+ const rel=(ball.vx-c.vx)*nx+(ball.vy-c.vy)*ny;
+ const closing=Math.max(0,-rel);
+ if(rel< -5){
+  const impulse=closing*1.38+13;
+  ball.lastTouchTeam=c.team;ball.lastTouchColor=c.color;
+  ball.vx+=nx*impulse;ball.vy+=ny*impulse;
+  c.vx-=nx*impulse*.115;c.vy-=ny*impulse*.115;
+  if(showEffects){
+   // Impossible striker still fires precise shots on forward-facing collisions.
+   if(c.bot&&impossibleMode()&&c.x>ball.x+8&&c.vx<-105&&c.attackCooldown<=0){
+    const targetY=clamp(blue.demolished?MID_Y:(blue.y<MID_Y?GOAL.bottom-30:GOAL.top+30),GOAL.top+30,GOAL.bottom-30);
+    const aimAngle=Math.atan2(targetY-ball.y,FIELD.left-32-ball.x),shotSpeed=930;
+    ball.vx=Math.cos(aimAngle)*shotSpeed;ball.vy=Math.sin(aimAngle)*shotSpeed;
+    c.attackCooldown=.32;c.attackPhase='setup';
+    burst(ball.x,ball.y,'#ffe9a7',24,250);cameraShake=Math.max(cameraShake,6);
+   }
+   // Orange bot defends the RIGHT net, not its own side.
+   if(c.bot&&ball.x>FIELD.right-220&&ball.vx>40){ball.vx=-Math.max(170,Math.min(440,Math.abs(ball.vx)*.75));if(ball.y>GOAL.top-30&&ball.y<GOAL.bottom+30)ball.vy+=(MID_Y-ball.y)*.6}
+   if(impulse>75){burst(ball.x-nx*ball.r,ball.y-ny*ball.r,c.color,11,180);cameraShake=Math.min(12,impulse/95);audio.fx('hit')}
+  }
+ }
+ ball.vx=clamp(ball.vx,-1050,1050);ball.vy=clamp(ball.vy,-1050,1050);
+ return{nx,ny,closing,sourceVx,sourceVy,penetration:hit.penetration,car:c};
+}
+// Pinches happen when a car drives the ball into a solid boundary, or when
+// cars approach the ball from opposing sides. Eject along the free axis so
+// the ball actually launches rather than clipping into either collider.
+function tryPinch(contacts){
+ if(ball.pinchCooldown>0||!contacts.length)return false;
+ const active=contacts.filter(h=>!h.car.demolished);
+ let shot=null;
+ const boundaries=[
+  {nx:0,ny:-1,near:ball.y-ball.r<=FIELD.top+5,label:'WALL PINCH'},
+  {nx:0,ny:1,near:ball.y+ball.r>=FIELD.bottom-5,label:'WALL PINCH'},
+  {nx:-1,ny:0,near:ball.x-ball.r<=FIELD.left+5 && (ball.y<GOAL.top-ball.r||ball.y>GOAL.bottom+ball.r),label:'WALL PINCH'},
+  {nx:1,ny:0,near:ball.x+ball.r>=FIELD.right-5 && (ball.y<GOAL.top-ball.r||ball.y>GOAL.bottom+ball.r),label:'WALL PINCH'}
+ ];
+ for(const hit of active){
+  const c=hit.car;
+  for(const wall of boundaries){
+   if(!wall.near||hit.nx*wall.nx+hit.ny*wall.ny<.58)continue;
+   const approach=hit.sourceVx*wall.nx+hit.sourceVy*wall.ny;
+   if(approach<175)continue;
+   const tx=-wall.ny,ty=wall.nx;
+   const sideways=hit.sourceVx*tx+hit.sourceVy*ty+ball.vx*tx*.3+ball.vy*ty*.3;
+   const direction=Math.sign(sideways)|| (c.team===0?1:-1);
+   const power=clamp(410+approach*.86,540,1020);
+   shot={vx:tx*power*direction-wall.nx*power*.18,vy:ty*power*direction-wall.ny*power*.18,label:wall.label,power};
+   break;
+  }
+  if(shot)break;
+ }
+ if(!shot&&active.length>=2){
+  const pair=active.flatMap((a,i)=>active.slice(i+1).map(b=>[a,b])).find(([a,b])=>a.car!==b.car&&a.nx*b.nx+a.ny*b.ny<-.63);
+  const [a,b]=pair||[null,null];
+  if(a&&b){
+   const aPush=a.closing,bPush=b.closing;
+   const combined=Math.max(0,aPush)+Math.max(0,bPush);
+   if(combined>225&&Math.min(aPush,bPush)>-35){
+    const tx=-a.ny,ty=a.nx;
+    const sideways=(a.sourceVx+b.sourceVx)*tx+(a.sourceVy+b.sourceVy)*ty+ball.vx*tx+ball.vy*ty;
+    const direction=Math.sign(sideways)||(ball.y<MID_Y?-1:1);
+    const power=clamp(420+combined*.85,560,1050);
+    shot={vx:tx*power*direction+a.nx*(aPush-bPush)*.18,vy:ty*power*direction+a.ny*(aPush-bPush)*.18,label:'DOUBLE CAR PINCH',power};
+   }
+  }
+ }
+ if(!shot)return false;
+ ball.vx=shot.vx;ball.vy=shot.vy;ball.pinchCooldown=.23;
+ burst(ball.x,ball.y,'#fdf8b8',25,310);burst(ball.x,ball.y,'#7de9ff',16,210);
+ cameraShake=Math.max(cameraShake,9);if(shot.label!=='WALL PINCH')notice('⚡ '+shot.label+'!',.7);audio.fx('hit');
+ return true;
+}
+function resolveBallWall(){const r=ball.r;
+ if(ball.y-r<FIELD.top){ball.y=FIELD.top+r;ball.vy=Math.abs(ball.vy)*.83}
+ if(ball.y+r>FIELD.bottom){ball.y=FIELD.bottom-r;ball.vy=-Math.abs(ball.vy)*.83}
+ const inMouth=ball.y>GOAL.top+r*.30&&ball.y<GOAL.bottom-r*.30;
+ if(ball.x-r<FIELD.left){if(inMouth){if(ball.x<FIELD.left-13){goalScored(1);return}}else{ball.x=FIELD.left+r;ball.vx=Math.abs(ball.vx)*.86}}
+ if(ball.x+r>FIELD.right-4&&inMouth&&impossibleMode()&&ball.vx>=0){impossibleSave();return}
+ if(ball.x+r>FIELD.right){if(inMouth){if(ball.x>FIELD.right+13){if(impossibleMode()){impossibleSave();return}goalScored(0);return}}else{ball.x=FIELD.right-r;ball.vx=-Math.abs(ball.vx)*.86}}
+ // Goal post corners deflect nearby grazing balls.
+ for(const px of [FIELD.left,FIELD.right])for(const py of [GOAL.top,GOAL.bottom]){
+  const dx=ball.x-px,dy=ball.y-py,d=Math.hypot(dx,dy);if(d>0&&d<r+8){const nx=dx/d,ny=dy/d;ball.x+=nx*(r+8-d);ball.y+=ny*(r+8-d);const vn=ball.vx*nx+ball.vy*ny;if(vn<0){ball.vx-=1.65*vn*nx;ball.vy-=1.65*vn*ny}}
+ }
+}
+function collectPads(dt){for(const pad of pads){if(pad.respawn>0){pad.respawn=Math.max(0,pad.respawn-dt);continue}for(const c of soccerCars()){if(!c.demolished&&Math.hypot(c.x-pad.x,c.y-pad.y)<(pad.large?40:32)&&c.boost<99){c.boost=Math.min(100,c.boost+(pad.large?70:28));pad.respawn=pad.large?9:5;burst(pad.x,pad.y,'#fadc7a',15,170);audio.fx('pad');break}}}}
+function physics(dt){if(online.connected&&online.role==='guest'&&gameType==='soccer')return;worldTime+=dt;
+ if(state==='goal'){goalDelay-=dt;if(goalDelay<=0){clearNotice();resetRound();if(!isFreeplay()&&time<=0)finish();else state='play'}}
+ if(state!=='play'&&state!=='goal')return;
+ if(state==='play'){
+  if(!isFreeplay()){time=Math.max(0,time-dt);if(time<=0){finish();return}}
+  for(const car of soccerCars())tickRespawn(car,dt);
+  for(const car of soccerCars()){
+   const isMyCar=mode==='online'?car.ownerId===online.id:car===blue||(mode==='duo'&&car===orange);
+   const remote=mode==='online'?online.remoteControls[car.ownerId]:null;
+   car.rpgEquipped=mode==='online'&&online.started
+    ? !!(isMyCar?devUnlocked&&devRpgEnabled:remote?.rpgEnabled)
+    : car===blue&&devUnlocked&&devRpgEnabled;
+   if(mode==='online'&&online.started&&!isMyCar&&remote?.rpgEnabled&&remote.fireSeq>0){
+    const previous=online.lastFireSeq[car.ownerId]||0;
+    if(remote.fireSeq!==previous){online.lastFireSeq[car.ownerId]=remote.fireSeq;fireRocket(car)}
+   }
+  }
+  if(mode==='solo'){orange.bot=true;orange.attackCooldown=Math.max(0,orange.attackCooldown-dt);thinkBot(orange,dt)}
+  ball.pinchCooldown=Math.max(0,ball.pinchCooldown-dt);
+  // Substep movement and re-solve all constraints; this prevents high-speed
+  // tunneling and keeps the ball solid between walls and multiple cars.
+  const steps=2,subdt=dt/steps;
+  for(let step=0;step<steps&&state==='play';step++){
+   if(mode==='online'&&online.started){
+    for(const car of soccerCars())updateCar(car,subdt,car.ownerId===online.id?controlFromKeys(p1):(online.remoteControls[car.ownerId]||neutralControl()));
+   }else{
+    updateCar(blue,subdt,controlFromKeys(p1));
+    if(!isFreeplay())updateCar(orange,subdt,mode==='solo'?orange.aiControl:controlFromKeys(p2));
+   }
+   const moving=soccerCars();
+   for(let a=0;a<moving.length;a++)for(let b=a+1;b<moving.length;b++)collideCars(moving[a],moving[b]);
+   const resistance=Math.exp(-.55*subdt);ball.vx*=resistance;ball.vy*=resistance;
+   ball.x+=ball.vx*subdt;ball.y+=ball.vy*subdt;
+   ball.spin+=(Math.hypot(ball.vx,ball.vy)/ball.r)*subdt*.45;
+   const contacts=[];
+   // When the car presses the ball against a wall, separate the car as well;
+   // repeating the constraints stops wall correction from forcing overlap.
+   for(let pass=0;pass<6;pass++){
+    const cars=soccerCars();
+    for(const car of cars)resolveCarWall(car);
+    for(let a=0;a<cars.length;a++)for(let b=a+1;b<cars.length;b++)collideCars(cars[a],cars[b]);
+    resolveBallWall();if(state!=='play')break;
+    for(const car of cars){
+     const hit=collideCarBall(car,pass===0);
+     if(hit){contacts.push(hit)}
+    }
+   }
+   if(state!=='play')break;
+   resolveBallWall();
+   if(state!=='play')break;
+   tryPinch(contacts);
+   collectPads(subdt);
+   moveRockets(subdt);
+  }
+ }
+ for(let i=demoFx.length-1;i>=0;i--){demoFx[i].life-=dt;if(demoFx[i].life<=0)demoFx.splice(i,1)}
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;if(p.life<=0){particles.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=1-dt*1.8;p.vy*=1-dt*1.8}
+ if(noticeTime>0){noticeTime-=dt;if(noticeTime<=0)clearNotice()}
+ cameraShake*=.87;audio.music();
+}
+
+// All arena graphics are rendered locally with Canvas 2D.
+function rr(x,y,w,h,r,color,stroke,width=1,ctx=g){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(color){ctx.fillStyle=color;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}}
+function glowCircle(x,y,r,color,alpha=.3){g.save();g.globalAlpha=alpha;g.shadowColor=color;g.shadowBlur=20;g.strokeStyle=color;g.lineWidth=3;g.beginPath();g.arc(x,y,r,0,TAU);g.stroke();g.restore()}
+function drawField(now){
+ const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#071427');bg.addColorStop(.55,'#102b3e');bg.addColorStop(1,'#061628');g.fillStyle=bg;g.fillRect(0,0,W,H);
+ // Stadium crowd bleachers, billboards, strip lights.
+ for(let row=0;row<3;row++){for(let i=0;i<70;i++){const x=16+i*17.15,y=77-row*17;const c=(i*13+row*17)%9;g.fillStyle=c<3?'#163d64':c<5?'#276483':c<6?'#39889b':'#102d50';g.fillRect(x,y,11,8);g.fillRect(x,H-45+row*15,11,8)}}
+ rr(17,91,1166,548,16,'#143747','#1c5875',6);
+ // Two-tone grass bands and subtle center glow.
+ const grass=g.createLinearGradient(FIELD.left,FIELD.top,FIELD.right,FIELD.bottom);grass.addColorStop(0,'#155c58');grass.addColorStop(.5,'#0b4a51');grass.addColorStop(1,'#0e5653');g.fillStyle=grass;g.fillRect(FIELD.left,FIELD.top,FIELD.right-FIELD.left,FIELD.bottom-FIELD.top);
+ for(let i=0;i<12;i++){g.fillStyle=i%2===0?'#c7fca908':'#031c2614';g.fillRect(FIELD.left+i*(FIELD.right-FIELD.left)/12,FIELD.top,(FIELD.right-FIELD.left)/12,FIELD.bottom-FIELD.top)}
+ for(let x=FIELD.left+25;x<FIELD.right;x+=50)for(let y=FIELD.top+27;y<FIELD.bottom;y+=50){g.fillStyle='#b6ece508';g.fillRect(x,y,2,2)}
+ // Team-tinted end zones.
+ g.fillStyle='#0baafa16';g.fillRect(FIELD.left,FIELD.top,153,FIELD.bottom-FIELD.top);g.fillStyle='#ff9c4218';g.fillRect(FIELD.right-153,FIELD.top,153,FIELD.bottom-FIELD.top);
+ // Painted pitch lines.
+ g.strokeStyle='#c2faf5a4';g.lineWidth=3;
+ // The sidewalls leave a real gap at each goal mouth.
+ g.beginPath();g.moveTo(FIELD.left,FIELD.top);g.lineTo(FIELD.right,FIELD.top);
+ g.moveTo(FIELD.left,FIELD.bottom);g.lineTo(FIELD.right,FIELD.bottom);
+ for(const x of [FIELD.left,FIELD.right]){
+  g.moveTo(x,FIELD.top);g.lineTo(x,GOAL.top);
+  g.moveTo(x,GOAL.bottom);g.lineTo(x,FIELD.bottom);
+ }
+ g.stroke();
+ g.save();g.strokeStyle='#c2faf544';g.lineWidth=1.5;g.setLineDash([8,9]);
+ g.beginPath();for(const x of [FIELD.left,FIELD.right]){g.moveTo(x,GOAL.top);g.lineTo(x,GOAL.bottom)}g.stroke();g.restore();
+ g.beginPath();g.moveTo(W/2,FIELD.top);g.lineTo(W/2,FIELD.bottom);g.stroke();g.beginPath();g.arc(W/2,MID_Y,103,0,TAU);g.stroke();g.beginPath();g.arc(W/2,MID_Y,5,0,TAU);g.fillStyle='#d0fff5';g.fill();
+ g.lineWidth=2.5;g.strokeStyle='#d1ffef66';g.strokeRect(FIELD.left,GOAL.top-52,110,(GOAL.bottom-GOAL.top)+104);g.strokeRect(FIELD.right-110,GOAL.top-52,110,(GOAL.bottom-GOAL.top)+104);
+ for(const side of [0,1]){
+  const x=side?FIELD.right:FIELD.left-GOAL.depth;
+  g.shadowBlur=25;g.shadowColor=side?'#ff924b':'#31caff';g.fillStyle=side?'#b65d233c':'#0ba6dc32';g.fillRect(x,GOAL.top,GOAL.depth,GOAL.bottom-GOAL.top);g.shadowBlur=0;
+  g.strokeStyle=side?'#ffb76a77':'#4ed3ff77';g.lineWidth=1;
+  for(let k=0;k<6;k++){g.beginPath();g.moveTo(x+k*GOAL.depth/5,GOAL.top);g.lineTo(x+k*GOAL.depth/5,GOAL.bottom);g.stroke()}
+  for(let y=GOAL.top;y<=GOAL.bottom;y+=17){g.beginPath();g.moveTo(x,y);g.lineTo(x+GOAL.depth,y);g.stroke()}
+  g.strokeStyle=side?'#ffae5a':'#3dd4ff';g.lineWidth=8;g.beginPath();
+  // Net roof, floor and back frame (front remains open for cars and ball).
+  const netBack=side?FIELD.right+GOAL.depth:FIELD.left-GOAL.depth;
+  const netFront=side?FIELD.right:FIELD.left;
+  g.moveTo(netBack,GOAL.top);g.lineTo(netFront,GOAL.top);
+  g.moveTo(netBack,GOAL.bottom);g.lineTo(netFront,GOAL.bottom);
+  g.moveTo(netBack,GOAL.top);g.lineTo(netBack,GOAL.bottom);g.stroke();
+  g.fillStyle=side?'#ffa44e':'#42d6ff';for(const y of [GOAL.top,GOAL.bottom]){g.beginPath();g.arc(side?FIELD.right:FIELD.left,y,8,0,TAU);g.fill()}
+ }
+ // Animated arena light strips.
+ const glow=.33+.23*Math.sin(now*.002);g.globalAlpha=glow;g.fillStyle='#55d5ff';g.fillRect(130,98,315,3);g.fillStyle='#ffb065';g.fillRect(755,98,315,3);g.globalAlpha=1;
+ g.textAlign='center';g.textBaseline='middle';g.font='900 32px system-ui';g.fillStyle='#c5f5f013';g.fillText('ROCKET RIVALS',W/2,FIELD.bottom-36);
+}
+function drawPads(now){for(const p of pads){if(p.respawn>0){g.strokeStyle='#66b7ae33';g.lineWidth=1;g.beginPath();g.arc(p.x,p.y,p.large?27:20,0,TAU);g.stroke();continue}
+ const pulse=1+.09*Math.sin(now*.004+p.phase),radius=(p.large?23:15)*pulse;
+ g.save();g.translate(p.x,p.y);g.shadowColor='#ffd36d';g.shadowBlur=17;g.fillStyle=p.large?'#f5b643':'#e2a340';g.globalAlpha=.19;g.beginPath();g.arc(0,0,radius+7,0,TAU);g.fill();g.globalAlpha=1;g.strokeStyle='#ffe08e';g.lineWidth=2.5;g.beginPath();g.arc(0,0,radius,0,TAU);g.stroke();g.fillStyle='#ffedb6';g.beginPath();for(let k=0;k<6;k++){let a=k*TAU/6-Math.PI/6,r=radius*.64;const x=Math.cos(a)*r,y=Math.sin(a)*r;if(k===0)g.moveTo(x,y);else g.lineTo(x,y)}g.closePath();g.fill();g.fillStyle='#d98f25';g.beginPath();g.arc(0,0,p.large?6:4,0,TAU);g.fill();g.restore()}}
+// Paint the selected silhouette using exactly the dimensions of its physical hitbox.
+function drawCar(c,ctx=g){
+ if(c.demolished)return;
+ const L=c.bodyLength,B=c.bodyWidth,team=c.team,body=c.bodyId;
+ const block=(x,y,w,h,r,fill,stroke,width=1)=>rr(x,y,w,h,r,fill,stroke,width,ctx);
+ ctx.save();ctx.translate(c.x+3,c.y+5);ctx.rotate(c.angle);if(body==='wedge'){tracePolygon(ctx,localCarShape(c));ctx.fillStyle='#00131f77';ctx.fill()}else block(-L/2,-B/2,L,B,Math.min(10,B*.24),'#00131f77');ctx.restore();
+ ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.angle);
+ const main=c.color,glass='#102e4c',border=team===0?'#8ae9ff':'#ffe0ad';
+ if(c.boosting){ctx.shadowColor=main;ctx.shadowBlur=17;ctx.fillStyle='#fff0a3';ctx.beginPath();ctx.moveTo(-L/2,-B*.23);ctx.lineTo(-L/2-rand(12,29),0);ctx.lineTo(-L/2,B*.23);ctx.fill();ctx.shadowBlur=0}
+ // Tires, body shell, and headlights all resize with the selectable hitbox.
+ if(body==='clown'){
+  // Miniature wheels stay proportional to this exceptionally small body.
+  for(const xx of [-L*.27,L*.17])for(const yy of [-B*.51,B*.51])block(xx-4.2,yy-2.7,8.4,5.4,2,'#0c1220','#8297a8',.9);
+ }else if(body==='wedge'){
+  for(const yy of [-B*.51,B*.51])block(-L*.38,yy-5,L*.24,10,3,'#07101b','#5e8490',1.7);
+  for(const yy of [-B*.31,B*.31])block(L*.08,yy-4,L*.19,8,3,'#07101b','#5e8490',1.7);
+ }else for(const xx of [-L*.30,L*.27])for(const yy of [-B/2-2,B/2+2])block(xx-L*.14,yy-5,L*.28,10,3,'#07101b','#5e8490',1.7);
+ ctx.shadowBlur=11;ctx.shadowColor=main;
+ if(body==='wedge'){tracePolygon(ctx,localCarShape(c));ctx.fillStyle=main;ctx.strokeStyle=border;ctx.lineWidth=2;ctx.fill();ctx.stroke()}
+ else block(-L/2,-B/2,L,B,Math.min(12,B*.26),main,border,2);ctx.shadowBlur=0;
+ // Unique top-down roof designs; the Clown Car's physics and silhouette are truly tiny.
+ if(body==='clown'){
+  // A colorful circus roof with a windshield and round red clown-nose bumper.
+  block(-L*.35,-B*.36,L*.47,B*.72,5,'#fff3c2','#ff8dc9',1);
+  block(-L*.06,-B*.29,L*.32,B*.58,3,glass,'#c7faff',.9);
+  // Bright colored roof dots, one on each side of the cabin.
+  for(const [x,y,color] of [[-L*.23,-B*.24,'#fa607a'],[-L*.23,B*.24,'#54ddf0'],[-L*.37,0,'#ffd85b']]){
+   ctx.beginPath();ctx.fillStyle=color;ctx.arc(x,y,2.3,0,TAU);ctx.fill();
+  }
+  ctx.fillStyle='#ff4e67';ctx.strokeStyle='#fff2ba';ctx.lineWidth=.8;ctx.beginPath();ctx.arc(L*.36,0,3.8,0,TAU);ctx.fill();ctx.stroke();
+  for(const yy of [-B*.28,B*.28]){ctx.fillStyle='#fff4a6';ctx.beginPath();ctx.arc(L*.30,yy,1.8,0,TAU);ctx.fill()}
+ }else if(body==='wedge'){
+  block(-L*.35,-B*.32,L*.24,B*.64,6,'#123858');
+  block(-L*.08,-B*.31,L*.28,B*.62,5,glass,'#c8fcff',1.5);
+  ctx.fillStyle='#fff3b0';ctx.beginPath();ctx.moveTo(L*.27,-B*.12);ctx.lineTo(L*.43,0);ctx.lineTo(L*.27,B*.12);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#ffffff77';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(L*.10,-B*.38);ctx.lineTo(L*.39,-B*.075);ctx.moveTo(L*.10,B*.38);ctx.lineTo(L*.39,B*.075);ctx.stroke();
+ }else if(body==='long'){
+  block(-L*.32,-B*.37,L*.25,B*.74,5,'#091d35');
+  block(-L*.03,-B*.34,L*.35,B*.68,5,glass,'#9ce9f2',1.1);
+  block(L*.26,-B*.38,L*.14,B*.76,4,'#ffffffe0');
+  block(-L*.48,-B*.54,L*.12,B*1.08,2,'#183651',border,1);
+ }else if(body==='wide'){
+  block(-L*.36,-B*.39,L*.34,B*.78,5,'#153a56');
+  block(-L*.07,-B*.31,L*.38,B*.62,6,glass,'#c3efff',1.5);
+  block(L*.30,-B*.42,L*.15,B*.84,3,'#fdf0da');
+  for(const yy of [-B*.32,B*.32])block(-L*.17,yy-2,L*.25,4,2,'#d9ffff77');
+ }else if(body==='slim'){
+  block(-L*.26,-B*.33,L*.27,B*.66,7,'#135879');
+  block(-L*.04,-B*.30,L*.32,B*.60,7,glass,'#b5faff',1);
+  block(L*.29,-B*.28,L*.12,B*.56,5,'#f0faff');
+  block(-L*.47,-B*.35,L*.08,B*.7,2,'#1c5d79');
+ }else{
+  block(-L*.34,-B*.37,L*.34,B*.74,8,'#134667');
+  block(-L*.06,-B*.34,L*.30,B*.68,5,glass,'#b9f3ff',1.5);
+  block(L*.24,-B*.39,L*.19,B*.78,6,'#e7fbef');
+ }
+ // Lights and player badge are scaled down for the tiny Clown Car.
+ if(body==='clown'){
+  ctx.fillStyle='#daffff88';ctx.fillRect(L*.06,-B*.17,1.2,B*.34);
+  for(const yy of [-B*.25,B*.25])block(-L*.47,yy-1.6,2.6,3.2,1,'#ff6178');
+  ctx.fillStyle='#16263f';ctx.beginPath();ctx.arc(-L*.32,0,3.8,0,TAU);ctx.fill();
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 5.5px system-ui';ctx.fillStyle='#fff';
+  ctx.fillText(mode==='online'?String(online.players.findIndex(p=>p.id===c.ownerId)+1):team===0?'1':(mode==='duo'?'2':'AI'),-L*.32,0);
+ }else{
+  ctx.fillStyle='#daffff73';ctx.fillRect(L*.09,-B*.18,2.3,B*.36);
+  for(const yy of [-B*.24,B*.24]){block(L*.43,(body==='wedge'?yy*.24:yy)-3,5,6,2,'#fff6b5');block(-L*.51,yy-3,5,6,2,'#ff6178')}
+  block(-L*.34,-5,15,10,3,'#10213a');ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 10px system-ui';ctx.fillStyle='#f9fbff';ctx.fillText(mode==='online'?String(online.players.findIndex(p=>p.id===c.ownerId)+1):team===0?'1':(mode==='duo'?'2':'AI'),-L*.34+7.5,0);
+ }
+ if(c.rpgEquipped){
+  // Compact cartoon roof-mounted launcher; pointing where the car faces.
+  block(L*.02,-Math.max(3,B*.09),L*.45,Math.max(6,B*.2),3,'#203b49','#ffe6a0',1.25);
+  block(L*.35,-Math.max(2.5,B*.065),L*.15,Math.max(5,B*.13),2,'#f7cc6e','#fff5b9',1);
+ }
+ ctx.restore();
+ if(c.spawnShield>0){ctx.save();ctx.globalAlpha=.18+.2*Math.sin(worldTime*19)**2;ctx.strokeStyle=c.color;ctx.lineWidth=4;ctx.shadowColor=c.color;ctx.shadowBlur=15;ctx.beginPath();ctx.arc(c.x,c.y,Math.hypot(L/2,B/2)+11,0,TAU);ctx.stroke();ctx.restore()}
+}
+function drawBall(){g.save();g.translate(ball.x+5,ball.y+6);g.fillStyle='#03141a76';g.beginPath();g.ellipse(0,0,ball.r*1.05,ball.r*.75,0,0,TAU);g.fill();g.restore();
+ g.save();g.translate(ball.x,ball.y);g.rotate(ball.spin);g.shadowColor='#f4ffff';g.shadowBlur=20;g.fillStyle='#f2fbff';g.beginPath();g.arc(0,0,ball.r,0,TAU);g.fill();g.shadowBlur=0;g.lineWidth=2;g.strokeStyle='#7bb4cd';g.stroke();g.fillStyle='#51728b';g.beginPath();g.arc(0,0,7,0,TAU);g.fill();for(let k=0;k<5;k++){const a=k*TAU/5;g.beginPath();g.arc(Math.cos(a)*14,Math.sin(a)*14,4,0,TAU);g.fill()}g.restore()}
+function drawParticles(){for(const p of particles){g.globalAlpha=clamp(p.life/p.max,0,1);g.fillStyle=p.color;g.beginPath();g.arc(p.x,p.y,p.size,0,TAU);g.fill()}g.globalAlpha=1}
+function drawDemoFx(){
+ for(const fx of demoFx){
+  const t=1-fx.life/fx.max,fade=Math.max(0,1-t);
+  g.save();g.translate(fx.x,fx.y);
+  g.globalAlpha=fade*.85;g.strokeStyle='#fff0af';g.lineWidth=8*(1-t)+1;
+  g.shadowColor='#ff993a';g.shadowBlur=32;
+  g.beginPath();g.arc(0,0,15+t*91,0,TAU);g.stroke();
+  const burstRadius=48+t*23;
+  g.fillStyle='#ff8f28';g.beginPath();
+  for(let i=0;i<24;i++){
+   const angle=i*TAU/24,r=(i%2===0?burstRadius:burstRadius*.63)*(1-t*.45);
+   const x=Math.cos(angle)*r,y=Math.sin(angle)*r;
+   if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+  }
+  g.closePath();g.fill();
+  g.fillStyle='#fff4bf';g.beginPath();g.arc(0,0,Math.max(0,28*(1-t)),0,TAU);g.fill();
+  g.shadowBlur=0;g.textAlign='center';g.textBaseline='middle';
+  g.font='1000 29px system-ui';g.lineWidth=6;g.strokeStyle='#71301c';
+  g.strokeText('BOOM!',0,-52-t*21);g.fillStyle='#fff5d7';g.fillText('BOOM!',0,-52-t*21);
+  g.restore();
+ }
+}
+function drawHud(){
+ if(isFreeplay()){
+  const color=blue.color;
+  rr(423,10,354,75,15,'#07182fe6','#5d86aa',2);
+  g.textBaseline='middle';g.textAlign='center';g.font='900 18px system-ui';g.fillStyle=color;g.fillText('FREEPLAY',540,33);
+  g.font='900 34px system-ui';g.fillStyle='#f2faff';g.fillText('∞',674,53);
+  g.font='900 21px system-ui';g.fillStyle=color;g.fillText('GOALS '+score[0],535,62);
+  g.textAlign='left';g.font='900 14px system-ui';g.fillStyle=color;g.fillText('PLAYER 1',106,27);
+  rr(106,47,177,16,8,'#0b2a40','#3f809d',1.5);rr(109,50,171*blue.boost/100,10,5,color);
+  g.font='800 11px system-ui';g.fillStyle=color;g.fillText('BOOST '+Math.ceil(blue.boost),110,83);
+  g.textAlign='right';g.font='900 14px system-ui';g.fillText('NO OPPONENT · NO TIME LIMIT',1080,27);g.textAlign='left';
+  return;
+ }
+ if(impossibleMode()){g.save();g.textAlign='right';g.textBaseline='middle';g.font='900 13px system-ui';g.fillStyle='#ffd37b';g.fillText('☠ UNBEATABLE GOAL · SAVES '+impossibleSaves,1085,145);g.restore()}
+ // HUD is intentionally drawn outside camera shake so it remains legible.
+ rr(421,9,358,77,15,'#07182fe6','#5d86aa',2);
+ const blueUi=blue.color,orangeUi=orange.color;
+ g.textAlign='center';g.textBaseline='middle';g.font='1000 46px system-ui';g.fillStyle=blueUi;g.fillText(score[0],487,54);g.fillStyle='#eff9ff';g.font='900 27px system-ui';const seconds=Math.ceil(time);g.fillText(Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0'),600,50);g.font='1000 46px system-ui';g.fillStyle=orangeUi;g.fillText(score[1],713,54);
+ g.textAlign='left';g.font='900 14px system-ui';g.fillStyle=blueUi;g.fillText(mode==='online'?'BLUE · '+online.players.filter(p=>p.team===0).length+' PLAYER(S)':'BLUE · PLAYER 1',106,27);g.fillStyle=orangeUi;g.fillText(mode==='online'?'ORANGE · '+online.players.filter(p=>p.team===1).length+' PLAYER(S)':mode==='solo'?'ORANGE · '+profiles[difficulty].label:'ORANGE · PLAYER 2',882,27);
+ rr(106,47,177,16,8,'#0b2a40','#3f809d',1.5);rr(109,50,171*blue.boost/100,10,5,blueUi);g.fillStyle=blueUi;g.font='800 11px system-ui';g.fillText('BOOST '+Math.ceil(blue.boost),110,83);g.font='900 12px system-ui';g.fillStyle=blueUi;g.fillText('DEMOS  '+demos[0],197,84);
+ {rr(889,47,180,16,8,'#422b22','#a77950',1.5);rr(892,50,174*orange.boost/100,10,5,orangeUi);g.fillStyle=orangeUi;g.fillText('BOOST '+Math.ceil(orange.boost),892,83)}g.font='900 12px system-ui';g.fillStyle=orangeUi;g.textAlign='right';g.fillText('DEMOS  '+demos[1],1077,84);g.textAlign='left';
+  if(blue.demolished||orange.demolished){g.font='900 15px system-ui';g.textBaseline='middle';if(blue.demolished){g.fillStyle=blueUi;g.fillText('BLUE RESPAWNING '+blue.respawnTimer.toFixed(1)+'s',115,116)}if(orange.demolished){g.textAlign='right';g.fillStyle=orangeUi;g.fillText('ORANGE RESPAWNING '+orange.respawnTimer.toFixed(1)+'s',1087,116);g.textAlign='left'}}
+ if(canLocalUseRpg()){
+  const mine=mode==='online'&&online.started?online.playerCars[online.id]:blue;
+  if(mine){
+   g.textAlign=mine.team===0?'left':'right';g.font='850 12px system-ui';g.fillStyle=mine.color;
+   g.fillText(mine.rpgCooldown>0?'RPG · '+mine.rpgCooldown.toFixed(1)+'s':'RPG · E TO FIRE',mine.team===0?115:1087,102);
+   g.textAlign='left';
+  }
+ }
+ if(state==='menu'){g.textAlign='center';g.font='800 12px system-ui';g.fillStyle='#a8d4dc';g.fillText('TOP-DOWN · LOCAL ARCADE',W/2,94)}
+}
+function drawMouseTarget(){
+ if(!mouseDrive.active || state!=='play')return;
+ const car=playerOneCar(),x=mouseDrive.x,y=mouseDrive.y;
+ g.save();g.strokeStyle='#c4f5ffab';g.lineWidth=2;g.setLineDash([8,9]);
+ g.beginPath();g.moveTo(car.x,car.y);g.lineTo(x,y);g.stroke();g.setLineDash([]);
+ g.shadowColor='#71ebff';g.shadowBlur=12;g.strokeStyle='#c6faff';g.lineWidth=2;
+ g.beginPath();g.arc(x,y,14,0,TAU);g.moveTo(x-23,y);g.lineTo(x-9,y);g.moveTo(x+9,y);g.lineTo(x+23,y);
+ g.moveTo(x,y-23);g.lineTo(x,y-9);g.moveTo(x,y+9);g.lineTo(x,y+23);g.stroke();g.restore();
+}
+function render(now){if(gameType==='flappy'){drawFlappy(now);return}g.save();g.clearRect(0,0,W,H);if(cameraShake>.3)g.translate(rand(-cameraShake,cameraShake),rand(-cameraShake,cameraShake));drawField(now);drawPads(now);drawMouseTarget();drawParticles();drawRockets();drawDemoFx();drawBall();for(const car of soccerCars())drawCar(car);g.restore();drawHud()}
+// Arcade selector. Soccer remains the default game and is untouched by Flappy's physics.
+let soccerHelp1=$('helpText1').innerHTML,soccerHelp2=$('helpText2').innerHTML;
+let soccerToolbar=$('toolbarTip').innerHTML;
+function keyboardGuide(profile){
+ const movement=['up','left','down','right'].map(action=>'<kbd>'+keyName(profile[action])+'</kbd>').join(' ');
+ return movement+' Move · <kbd>'+keyName(profile.boost)+'</kbd> Boost · <kbd>'+keyName(profile.drift)+'</kbd> Drift';
+}
+function refreshControlHelp(){
+ soccerHelp1=keyboardGuide(p1)+' · <kbd>Mouse drag</kbd> 360° drive';
+ soccerHelp2=keyboardGuide(p2)+'<br><b>Local 2-player:</b> share one keyboard.';
+ soccerToolbar='Move: '+['up','left','down','right'].map(a=>keyName(p1[a])).join(' / ')+' or drag mouse · '+keyName(p1.boost)+' Boost · Esc Pause';
+ if(gameType==='flappy')return;
+ if(typeof online!=='undefined'&&online.connected&&online.started)onlineHelp();
+ else setArcadeHelp(false);
+}
+
+function setArcadeHelp(isFlappy){
+ $('gameShell').classList.toggle('flappy-active',isFlappy);
+ document.querySelector('.intro .eyebrow').textContent=isFlappy?'NEW FLAPPY CAR MODE':'NEW TOP-DOWN EDITION';
+ document.querySelector('.intro h1').innerHTML=isFlappy?'FLAP. DODGE. <span>SOAR.</span>':'DRIVE. BOOST. <span>SCORE.</span>';
+ document.querySelector('.intro p').textContent=isFlappy?'Fly the standard car in your chosen color through the obstacles and beat your high score.':'Bird’s-eye-view car soccer, challenging bots, local multiplayer, and arcade modes — no online account needed.';
+ $('helpTitle1').textContent=isFlappy?'☁️ Flappy Car — How to Fly':'🔵 Blue — Player 1';
+ $('helpTitle2').textContent=isFlappy?'🏆 Score & High Score':'🟠 Orange — Player 2';
+ $('helpText1').innerHTML=isFlappy?'<kbd>Space</kbd> / <kbd>W</kbd> / <kbd>↑</kbd> / click / tap to flap upward. Release to fall. <kbd>P</kbd> or <kbd>Esc</kbd> pauses.':soccerHelp1;
+ $('helpText2').innerHTML=isFlappy?'Fly between the pillars. Each pair passed earns 1 point. At 20 points, EVERY pipe pair starts moving up and down! One crash ends the run. Your best score saves in this browser.':soccerHelp2;
+ $('toolbarTip').innerHTML=isFlappy?'<kbd>Space</kbd>, <kbd>W</kbd>, <kbd>↑</kbd> or tap to flap · <kbd>Esc</kbd> to pause · Pass pillars to score':soccerToolbar;
+}
+function chooseGameType(type){selectedGameType=type;const isFlappy=type==='flappy';
+ for(const [key,id] of [['soccer','selectSoccer'],['freeplay','selectFreeplay'],['flappy','selectFlappy']]){$(id).classList.toggle('selected',type===key);$(id).setAttribute('aria-pressed',String(type===key))}
+ $('startModeButton').textContent=isFlappy?'Play Flappy Car →':type==='freeplay'?'Start Freeplay →':'Continue →';
+ $('modesDescription').textContent=isFlappy?'Fly through gaps and beat your high score.':type==='freeplay'?'Practice alone with no opponent and unlimited time.':'Score goals in a '+matchLengthMinutes()+'-minute match.';
+ $('modesGarage').textContent=isFlappy?'🎨 Choose Flappy Car Color':'Customize car';
+}
+function openGameModes(){releaseMouseDrive();leaveOnline();keys=Object.create(null);state='menu';gameType='soccer';clearNotice();setArcadeHelp(false);chooseGameType(selectedGameType);showScreen('modes')}
+
+const flappy={x:300,y:335,vy:0,score:0,best:0,time:0,speed:290,spawn:0,gates:[],shards:[],shake:0,motionNotice:0};
+try{flappy.best=Math.max(0,Math.floor(+localStorage.getItem('rocketRivalsFlappyBest')||0))}catch(e){}
+const FLAPPY={ceiling:92,floor:631,gravity:1470,jump:-475,gap:228,width:105};
+function newFlappyGate(x){const gap=Math.max(193,FLAPPY.gap-Math.min(34,flappy.score*1.7)),half=gap/2;
+ const y=rand(FLAPPY.ceiling+half+24,FLAPPY.floor-half-24);
+ return{x,width:FLAPPY.width,y,gap,passed:false,moving:false,baseY:y,moveTime:0};
+}
+// After score 20 every existing and future pipe pair oscillates vertically.
+// The offset starts at zero (no teleport), and the travel direction points
+// toward the side of the playfield with more space, keeping gaps reachable.
+function startMovingFlappyGate(gate){
+ if(gate.moving)return;
+ gate.moving=true;gate.baseY=gate.y;gate.moveTime=0;
+ const half=gate.gap/2,min=FLAPPY.ceiling+half+18,max=FLAPPY.floor-half-18;
+ const downRoom=Math.max(0,max-gate.baseY),upRoom=Math.max(0,gate.baseY-min);
+ gate.moveDirection=downRoom>=upRoom?1:-1;
+ gate.moveAmplitude=Math.min(50,Math.max(downRoom,upRoom)/2);
+ gate.moveFrequency=TAU/rand(2.4,3.2);
+}
+function moveFlappyGate(gate,dt){
+ if(!gate.moving)return;
+ gate.moveTime+=dt;
+ gate.y=gate.baseY+gate.moveDirection*gate.moveAmplitude*(1-Math.cos(gate.moveTime*gate.moveFrequency));
+}
+function resetFlappy(){flappy.x=300;flappy.y=350;flappy.vy=0;flappy.score=0;flappy.time=0;flappy.speed=295;flappy.spawn=0;flappy.shake=0;flappy.motionNotice=0;flappy.shards=[];flappy.gates=[newFlappyGate(1100),newFlappyGate(1540)];}
+function updateFlappyPanel(over=false){$('flappyCustomize').textContent='🎨 Color: '+flappyColorName()+' · Change';$('flappyTag').textContent=over?'💥 FLIGHT ENDED':'☁️ NEW ARCADE MODE';
+ $('flappyTitle').textContent=over?'CAR CRASHED!':'FLAPPY CAR';
+ $('flappyDescription').textContent=over?'You cleared '+flappy.score+' obstacle'+(flappy.score===1?'':'s')+'! Try again to beat your best.':'Press Space, W, ↑, click, or tap to flap. Fly your colored car through the gaps without hitting the obstacles!';
+ $('flappyScoreText').textContent=flappy.score;$('flappyBestText').textContent=flappy.best;
+ $('flappyStart').textContent=over?'↻ TRY AGAIN':'▶ START FLYING';
+}
+function startFlappy(){releaseMouseDrive();gameType='flappy';keys=Object.create(null);resetFlappy();setArcadeHelp(true);state='flappyReady';$('matchLabel').textContent='FLAPPY CAR · ARCADE';updateFlappyPanel(false);showScreen('flappy');audio.ensure();}
+function startFlappyRun(){gameType='flappy';keys=Object.create(null);resetFlappy();setArcadeHelp(true);state='flappyPlay';showScreen(null);$('matchLabel').textContent='FLAPPY CAR · FLY!';audio.ensure();flapCar();lastFrame=performance.now();}
+function flapCar(){if(state!=='flappyPlay')return;flappy.vy=FLAPPY.jump;audio.fx('boost');
+ for(let i=0;i<7;i++){const a=rand(0,TAU);flappy.shards.push({x:flappy.x-25,y:flappy.y+15,vx:-rand(40,160),vy:rand(20,130),life:rand(.15,.35),max:.35,size:rand(2,5),color:i%2?'#8ff6ff':'#fff1ad'})}
+}
+function flappyCrash(){if(state!=='flappyPlay')return;state='flappyOver';audio.fx('demo');flappy.shake=17;
+ for(let i=0;i<50;i++){const a=rand(0,TAU),v=rand(55,420);flappy.shards.push({x:flappy.x,y:flappy.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.3,.9),max:.9,size:rand(2,8),color:['#ffbb51','#ff6548','#effdff','#57deff'][i%4]})}
+ if(flappy.score>flappy.best){flappy.best=flappy.score;try{localStorage.setItem('rocketRivalsFlappyBest',String(flappy.best))}catch(e){}}
+ updateFlappyPanel(true);showScreen('flappy');$('matchLabel').textContent='FLAPPY CAR · GAME OVER';
+}
+function flappyCarShape(){const body=BODY_TYPES[FLAPPY_BODY],a=clamp(flappy.vy/870,-.52,.75);
+ return{x:flappy.x,y:flappy.y,angle:a,team:0,bodyId:FLAPPY_BODY,bodyLength:body.length,bodyWidth:body.width,color:flappyColor,boosting:state==='flappyPlay'&&flappy.vy<0,demolished:false,spawnShield:0};
+}
+function updateFlappy(dt){if(gameType!=='flappy')return;
+ // Debris fades even when the game-over panel is on-screen.
+ for(let i=flappy.shards.length-1;i>=0;i--){const p=flappy.shards[i];p.life-=dt;if(p.life<=0){flappy.shards.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.max(0,1-dt*1.6);p.vy+=340*dt}
+ flappy.shake=Math.max(0,flappy.shake-dt*38);
+ if(state!=='flappyPlay')return;
+ flappy.motionNotice=Math.max(0,flappy.motionNotice-dt);
+ flappy.time+=dt;flappy.speed=Math.min(425,295+flappy.score*7);
+ flappy.vy=Math.min(760,flappy.vy+FLAPPY.gravity*dt);
+ flappy.y+=flappy.vy*dt;
+ const c=flappyCarShape(),a=c.angle,L=c.bodyLength/2,B=c.bodyWidth/2;
+ const dx=Math.abs(Math.cos(a))*L+Math.abs(Math.sin(a))*B-3;
+ const dy=Math.abs(Math.sin(a))*L+Math.abs(Math.cos(a))*B-3;
+ if(flappy.y-dy<FLAPPY.ceiling||flappy.y+dy>FLAPPY.floor){flappyCrash();return}
+ for(const gate of flappy.gates){gate.x-=flappy.speed*dt;
+  if(!gate.passed&&gate.x+gate.width<flappy.x-dx){
+   gate.passed=true;flappy.score++;audio.fx('pad');
+   if(flappy.score===20){flappy.motionNotice=3.5;audio.fx('goal')}
+   if(flappy.score>flappy.best){flappy.best=flappy.score;try{localStorage.setItem('rocketRivalsFlappyBest',String(flappy.best))}catch(e){}}
+  }
+  if(flappy.score>=20){startMovingFlappyGate(gate);moveFlappyGate(gate,dt)}
+  if(flappy.x+dx>gate.x+7&&flappy.x-dx<gate.x+gate.width-7){const top=gate.y-gate.gap/2,bottom=gate.y+gate.gap/2;if(flappy.y-dy<top||flappy.y+dy>bottom){flappyCrash();return}}
+ }
+ flappy.gates=flappy.gates.filter(p=>p.x+p.width>-40);
+ const last=flappy.gates[flappy.gates.length-1];if(!last||last.x<900){const next=newFlappyGate(last?last.x+435:1250);if(flappy.score>=20)startMovingFlappyGate(next);flappy.gates.push(next)}
+}
+function drawFlappy(now){g.save();g.clearRect(0,0,W,H);
+ if(flappy.shake>.3)g.translate(rand(-flappy.shake,flappy.shake),rand(-flappy.shake,flappy.shake));
+ const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#081933');sky.addColorStop(.39,'#164b78');sky.addColorStop(.78,'#178394');sky.addColorStop(1,'#0e3844');g.fillStyle=sky;g.fillRect(-24,-24,W+48,H+48);
+ // Soft sky light and parallax clouds.
+ const halo=g.createRadialGradient(865,185,10,865,185,520);halo.addColorStop(0,'#bafcff55');halo.addColorStop(1,'#bafcff00');g.fillStyle=halo;g.fillRect(0,0,W,H);
+ for(let i=0;i<12;i++){let cx=(i*163+64-(flappy.time*27)%(W+230)+(W+230))%(W+230)-70;let cy=120+(i*97)%375;
+  g.save();g.globalAlpha=.10+(i%3)*.035;g.fillStyle='#e2fbff';g.beginPath();g.ellipse(cx,cy,75+(i%3)*18,19+(i%4)*7,0,0,TAU);g.ellipse(cx+28,cy-8,35,23,0,0,TAU);g.fill();g.restore()}
+ // Faraway rolling city and hills.
+ g.fillStyle='#0d3d65aa';g.beginPath();g.moveTo(0,569);for(let x=0;x<=W;x+=16)g.lineTo(x,518+Math.sin(x*.015+flappy.time*.18)*23+Math.sin(x*.038)*13);g.lineTo(W,630);g.lineTo(0,630);g.fill();
+ for(let x=0;x<W;x+=45){const offset=(flappy.time*19)%45;g.fillStyle='#102b4a7b';g.fillRect(x-offset,490-(x%8)*5,29,135)}
+ // Play-area bounds, glowing hazard pillars, and the floor.
+ g.fillStyle='#102943';g.fillRect(0,0,W,FLAPPY.ceiling);g.fillStyle='#1d6074';g.fillRect(0,FLAPPY.ceiling-8,W,8);
+ g.fillStyle='#092235';g.fillRect(0,FLAPPY.floor,W,H-FLAPPY.floor);g.fillStyle='#34c8db';g.fillRect(0,FLAPPY.floor,W,7);
+ for(let x=0;x<W+100;x+=74){const ox=(x-(flappy.time*flappy.speed*.55)%74);g.fillStyle='#16506b';g.fillRect(ox,FLAPPY.floor+24,38,5)}
+ for(const gate of flappy.gates)drawFlappyGate(gate);
+ // Faint movement line and marker behind the car.
+ g.save();g.globalAlpha=.3;g.strokeStyle='#b9faff';g.setLineDash([9,14]);g.lineWidth=2;g.beginPath();g.moveTo(25,flappy.y);g.lineTo(flappy.x-65,flappy.y);g.stroke();g.restore();
+ const c=flappyCarShape();if(state!=='flappyOver')drawCar(c,g);
+ for(const part of flappy.shards){g.save();g.globalAlpha=clamp(part.life/part.max,0,1);g.fillStyle=part.color;g.shadowBlur=10;g.shadowColor=part.color;g.beginPath();g.arc(part.x,part.y,part.size,0,TAU);g.fill();g.restore()}
+ g.restore();
+ rr(430,12,340,74,13,'#061e39df','#78b8d3a1',2);
+ g.textAlign='center';g.textBaseline='middle';g.fillStyle='#95e8ff';g.font='900 12px system-ui';g.fillText('FLAPPY CAR',600,29);
+ g.fillStyle='#fff';g.font='1000 43px system-ui';g.fillText(String(flappy.score),600,61);
+ g.fillStyle='#e0faff';g.font='900 18px system-ui';g.textAlign='right';g.fillText('BEST '+flappy.best,1139,45);
+ g.textAlign='left';g.fillStyle='#a7eeff';g.font='900 16px system-ui';g.fillText('☁️ ARCADE',38,44);
+ if(flappy.score>=20){
+  g.save();g.fillStyle='#ffdb8b';g.font='900 16px system-ui';g.fillText('↕ MOVING PIPES',36,70);
+  if(flappy.motionNotice>0){g.globalAlpha=Math.min(1,flappy.motionNotice,.8+flappy.motionNotice);g.textAlign='center';g.font='1000 26px system-ui';g.shadowBlur=16;g.shadowColor='#ffbf53';g.fillText('LEVEL UP — MOVING PIPES!',600,135)}
+  g.restore();
+ }
+ if(state==='flappyPlay'){g.fillStyle='#ccefff';g.font='800 14px system-ui';g.textAlign='center';g.fillText('SPACE  ·  W  ·  ↑  ·  CLICK / TAP TO FLY',600,675)}
+}
+function drawFlappyGate(p){const x=p.x,w=p.width,top=p.y-p.gap/2,bottom=p.y+p.gap/2;
+ // Metal pillars with a glowing edge and bolts; glowing caps frame the gap.
+ for(const [y,h,capY] of [[FLAPPY.ceiling,top-FLAPPY.ceiling,top-29],[bottom,FLAPPY.floor-bottom,bottom]]){
+  if(h<0)continue;
+  const gradient=g.createLinearGradient(x,0,x+w,0);gradient.addColorStop(0,'#113d58');gradient.addColorStop(.24,'#24819c');gradient.addColorStop(.6,'#1e5a78');gradient.addColorStop(1,'#08283e');
+  g.shadowBlur=10;g.shadowColor='#1ce3da88';rr(x,y,w,h,4,gradient,'#5ef7d4',3);g.shadowBlur=0;
+  g.fillStyle='#a5fff328';for(let j=0;j<Math.max(0,h);j+=30)g.fillRect(x+17,y+j,8,14);
+  rr(x-12,capY,w+24,29,7,'#0a3658','#a2fff1',3);g.fillStyle='#61f9dd';g.fillRect(x-10,capY+3,w+20,5);
+  g.fillStyle='#ffdf81';for(const bx of [x+5,x+w-6]){g.beginPath();g.arc(bx,capY+17,3,0,TAU);g.fill()}
+ }
+}
+// Intro animation: glowing blue and orange cars meet head-on, followed by a
+// large, stylized explosion and title reveal. No external images or music.
+const boot=$('bootSplash'),bootLogo=$('bootLogo'),bg=$('bootCanvas').getContext('2d');
+let bootTime=0,bootClosed=false;
+const bootLength=4.75;
+function dismissBoot(){if(bootClosed)return;bootClosed=true;boot.classList.add('out');boot.style.pointerEvents='none';$('menuScreen').hidden=false;}
+$('bootSkip').addEventListener('click',dismissBoot);
+if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)dismissBoot();
+function introCar(x,y,angle,team){
+ const profile=customCars[team],size=BODY_TYPES[profile.body];
+ return{x,y,angle,team,bodyId:profile.body,bodyLength:size.length,bodyWidth:size.width,color:profile.color,boosting:true,demolished:false,spawnShield:0};
+}
+function paintBoot(dt){
+ if(bootClosed)return;
+ bootTime=Math.min(6,bootTime+dt);
+ const t=bootTime,impact=1.95;
+ $('bootProgress').style.width=Math.min(100,t/bootLength*100)+'%';
+ bootLogo.parentElement.classList.toggle('reveal',t>2.42);
+ // Outer-space gradient and stadium horizon.
+ const grad=bg.createLinearGradient(0,0,0,700);
+ grad.addColorStop(0,'#020915');grad.addColorStop(.55,'#09253e');grad.addColorStop(1,'#020710');
+ bg.fillStyle=grad;bg.fillRect(0,0,1200,700);
+ const centerGlow=bg.createRadialGradient(600,350,35,600,350,490);
+ centerGlow.addColorStop(0,'#235c725b');centerGlow.addColorStop(1,'#0a1e2600');
+ bg.fillStyle=centerGlow;bg.fillRect(0,0,1200,700);
+ bg.strokeStyle='#2b8bac28';bg.lineWidth=2;
+ for(let i=-9;i<=9;i++){bg.beginPath();bg.moveTo(600+i*47,345);bg.lineTo(600+i*160,700);bg.stroke()}
+ for(let y=392;y<700;y+=Math.max(12,(y-365)*.16)){bg.beginPath();bg.moveTo(0,y);bg.lineTo(1200,y);bg.stroke()}
+ // Two moving headlight trails, rendered before the cars.
+ if(t<impact){
+  const k=Math.min(1,t/impact),e=k*k*(3-2*k);
+  const lx=90+e*462,rx=1110-e*462,cy=355;
+  for(let side=0;side<2;side++){
+   const x=side?rx:lx,dir=side?1:-1,color=side?'#ff994b':'#35ccff';
+   bg.save();bg.strokeStyle=color;bg.shadowColor=color;bg.shadowBlur=19;
+   for(let z=0;z<5;z++){bg.globalAlpha=.38-z*.06;bg.lineWidth=3+z*1.7;bg.beginPath();bg.moveTo(x+dir*62,cy+(z-2)*11);bg.lineTo(x+dir*(200+z*16),cy+(z-2)*17);bg.stroke()}
+   bg.restore();
+  }
+  bg.save();bg.translate(0,-3);
+  bg.shadowBlur=26;bg.shadowColor='#16bdff';drawCar(introCar(lx,cy,0,0),bg);
+  bg.shadowColor='#ff853b';drawCar(introCar(rx,cy,Math.PI,1),bg);
+  bg.restore();
+ }else{
+  const age=t-impact,rad=age*425,fade=Math.max(0,1-age/1.3);
+  if(age<1.5){
+   // Fireball, concentric shockwaves, shards, and striking lightning streaks.
+   bg.save();bg.translate(600,355);
+   const fire=bg.createRadialGradient(0,0,0,0,0,Math.max(1,rad*.76));
+   fire.addColorStop(0,'#ffffff');fire.addColorStop(.22,'#fff8ad');fire.addColorStop(.48,'#ffad39');fire.addColorStop(.8,'#fb4a25bb');fire.addColorStop(1,'#ff512200');
+   bg.globalAlpha=fade;bg.fillStyle=fire;bg.beginPath();bg.arc(0,0,rad*.76,0,TAU);bg.fill();
+   for(let i=0;i<36;i++){
+    const a=i*TAU/36 + Math.sin(i*17.8)*.15,outer=rad*(.92+(i%4)*.13),inner=rad*.42;
+    bg.strokeStyle=i%3===0?'#f5ffff':i%2===0?'#ffc75b':'#ff733b';bg.lineWidth=i%4===0?7:3;bg.globalAlpha=fade*(i%3===0?.95:.65);
+    bg.beginPath();bg.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);bg.lineTo(Math.cos(a)*outer,Math.sin(a)*outer);bg.stroke();
+   }
+   for(let j=0;j<3;j++){
+    bg.globalAlpha=fade*.75;bg.shadowColor=j===1?'#24ceff':'#ffbc61';bg.shadowBlur=30;bg.strokeStyle=j===1?'#66edff':'#ffe09a';bg.lineWidth=15-j*4;
+    bg.beginPath();bg.arc(0,0,rad*(1.06-j*.13),0,TAU);bg.stroke();
+   }
+   bg.restore();
+   // Single brief flash, never sustained strobing.
+   if(age<.14){bg.fillStyle=`rgba(255,247,212,${(1-age/.14)*.94})`;bg.fillRect(0,0,1200,700)}
+  }
+ }
+ // Letterboxing for a cinematic presentation.
+ bg.fillStyle='#010711da';bg.fillRect(0,0,1200,58);bg.fillRect(0,644,1200,56);
+ if(bootTime>=bootLength)dismissBoot();
+}
+
+// Offline edition: all online lobby, WebSocket, and relay logic removed.
+// Small inert game-state helpers retain compatibility with the shared soccer physics.
+const neutralControl=()=>({moveX:0,moveY:0,boost:false,drift:false});
+const online={connected:false,active:false,started:false,peer:false,role:'',id:'',players:[],playerCars:{},remoteControls:{},lastFireSeq:{}};
+const safeCustomization=c=>({body:BODY_TYPES[c?.body]?c.body:'balanced',color:PAINTS.some(p=>p.hex===c?.color)?c.color:'#ffa24d'});
+function leaveOnline(){ /* Offline-only; no sockets to close. */ }
+function onlineHelp(){ /* Offline-only. */ }
+function tickOnline(){ /* Offline-only. */ }
+function sendOnlineSnapshot(){ /* Offline-only. */ }
+function frame(now){tickOnline(now);let elapsed=Math.min((now-lastFrame)/1000,.055);lastFrame=now;paintBoot(elapsed);updateFlappy(elapsed);if(online.connected&&online.role==='guest'&&gameType==='soccer'){
+  if(noticeTime>0){noticeTime-=elapsed;if(noticeTime<=0)clearNotice()}
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=elapsed;if(p.life<=0){particles.splice(i,1);continue}p.x+=p.vx*elapsed;p.y+=p.vy*elapsed}
+  audio.music();
+ }acc+=elapsed;let k=0;while(acc>=1/120&&k<8){physics(1/120);acc-=1/120;k++}if(k>=8)acc=0;sendOnlineSnapshot(now);render(now);requestAnimationFrame(frame)}
+buildPads();resetRound();refreshControlHelp();showScreen('menu');requestAnimationFrame(frame);
+// Read-only diagnostics for local testing.
+window.rocketRivalsStatus=()=>({dev:{unlocked:devUnlocked,rpgEnabled:devRpgEnabled,rocketCount:rockets.length,rockets:rockets.map(r=>({x:r.x,y:r.y,team:r.team}))},keybinds:bindProfiles.map(p=>structuredClone(p)),mouseDrive:{active:mouseDrive.active,x:mouseDrive.x,y:mouseDrive.y},edition:'offline-only',online:false,mode,state,gameType,selectedGameType,freeplay:isFreeplay(),flappy:{score:flappy.score,best:flappy.best,y:flappy.y,vy:flappy.vy,gates:flappy.gates.length,movingPipes:flappy.score>=20,color:flappyColor,body:FLAPPY_BODY},score:[...score],time,duration,selectedMatchMinutes:matchLengthMinutes(),ball:{x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,pinchCooldown:ball.pinchCooldown},blue:{x:blue.x,y:blue.y,angle:blue.angle,vx:blue.vx,vy:blue.vy,boost:blue.boost,boosting:blue.boosting},orange:{x:orange.x,y:orange.y,angle:orange.angle,vx:orange.vx,vy:orange.vy,boost:orange.boost,boosting:orange.boosting,demolished:orange.demolished,respawnTimer:orange.respawnTimer,spawnShield:orange.spawnShield},blueDemolished:blue.demolished,blueRespawnTimer:blue.respawnTimer,blueSpawnShield:blue.spawnShield,demos:[...demos],difficulty,impossibleSaves,unbeatableGoal:impossibleMode(),botAttackPhase:orange.attackPhase,intro:{time:bootTime,finished:bootClosed},garage:customCars.map(c=>({...c})),hitboxes:{blue:[blue.bodyLength,blue.bodyWidth],orange:[orange.bodyLength,orange.bodyWidth]},pointedShape:localCarShape(blue)});
+</script>
+</body>
+</html>
